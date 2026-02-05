@@ -26,16 +26,34 @@ import aboutusRoutes from "./routes/aboutus.routes.js";
 // 5️⃣ App init
 const app = express();
 
-// 6️⃣ Middlewares
+// 6️⃣ Middlewares (UPDATED FOR DEPLOYMENT)
+const allowedOrigins = [
+  'https://dar-al-hikma.vercel.app', // Your Vercel URL
+  'https://www.daralhikma.org',      // Your GoDaddy/Hostinger domain
+  'https://daralhikma.org',          // Non-www version
+  'http://localhost:5173'            // Local dev (Vite default)
+];
+
 app.use(cors({
-  origin: true, // allow frontend origin (safe for dev)
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
+  exposedHeaders: ["x-rtb-fingerprint-id"], // 🔥 FIXES the "unsafe header" warning
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
 }));
+
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 // 7️⃣ Health check (VERY IMPORTANT)
-
 app.get("/health", async (req, res) => {
   const dbHealth = await checkDatabaseHealth();
   res.json({
@@ -47,6 +65,8 @@ app.get("/health", async (req, res) => {
 });
 
 // 8️⃣ API Routes
+// Note: Webhooks usually need to be public (no auth)
+app.use("/api/webhooks", webhookRoutes); 
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/donations", donationRoutes);
@@ -55,7 +75,6 @@ app.use("/api/donors", donorRoutes);
 app.use("/api/media", mediaRoutes);
 app.use("/api/nisab", nisabRoutes);
 app.use("/api/content", contentRoutes);
-app.use("/api/webhooks", webhookRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/testimonials", testimonialRoutes);
@@ -70,52 +89,27 @@ app.use((err, req, res, next) => {
     name: err.name
   });
 
-  // Database connection errors
   if (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT') {
     return res.status(503).json({
       success: false,
-      message: "Database connection failed. Please check your database configuration.",
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+      message: "Database connection failed. Please check your database configuration."
     });
   }
 
-  // Table doesn't exist
-  if (err.code === '42P01') {
-    return res.status(503).json({
-      success: false,
-      message: "Database table does not exist. Please run migrations to initialize the database.",
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
-  }
-
-  // Syntax errors in SQL
-  if (err.code === '42601' || err.code === '42883') {
-    return res.status(500).json({
-      success: false,
-      message: "Database query error. Please check the server logs.",
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
-  }
-
-  // Default error response
   res.status(err.status || 500).json({
     success: false,
     message: err.message || "Internal Server Error",
-    ...(process.env.NODE_ENV === 'development' && {
-      error: err.message,
-      stack: err.stack,
-      code: err.code
-    })
+    ...(process.env.NODE_ENV === 'development' && { error: err.message })
   });
 });
 
-// 🔟 Start server ONLY after DB is ready
+// 🔟 Start server (Bind to 0.0.0.0 for Render)
 const PORT = process.env.PORT || 5000;
 
 (async () => {
   try {
-    await initDatabase(); // 🔥 connects to Supabase PostgreSQL
-    app.listen(PORT, () => {
+    await initDatabase(); 
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
   } catch (error) {
