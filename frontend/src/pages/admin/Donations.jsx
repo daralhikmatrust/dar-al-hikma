@@ -6,7 +6,7 @@ import { FiDownload, FiSearch, FiFilter, FiX, FiFileText, FiUser, FiExternalLink
 import toast from 'react-hot-toast'
 
 export default function AdminDonations() {
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+  const API_BASE = api.defaults.baseURL
   const [donations, setDonations] = useState([])
   const [filteredDonations, setFilteredDonations] = useState([])
   const [loading, setLoading] = useState(true)

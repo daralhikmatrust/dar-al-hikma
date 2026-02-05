@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import axios from 'axios'
 import toast from 'react-hot-toast'
 import api from '../services/api'
 
@@ -25,12 +24,8 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const [token, setToken] = useState(() => getStoredToken())
 
-  // Configure axios defaults
-  axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
-
   useEffect(() => {
     if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
       fetchUser()
     } else {
       setUser(null)
@@ -64,7 +59,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const portal = options?.portal === 'admin' ? 'admin' : 'user'
       const endpoint = portal === 'admin' ? '/auth/admin/login' : '/auth/user/login'
-      const { data } = await axios.post(endpoint, { email, password })
+      const { data } = await api.post(endpoint, { email, password })
       setToken(data.accessToken)
       setUser(data.user)
       const remember = options?.remember === true
@@ -75,7 +70,6 @@ export const AuthProvider = ({ children }) => {
 
       targetStorage.setItem(TOKEN_KEY, data.accessToken)
       targetStorage.setItem(REFRESH_KEY, data.refreshToken)
-      axios.defaults.headers.common['Authorization'] = `Bearer ${data.accessToken}`
       toast.success('Login successful!')
       return data
     } catch (error) {
@@ -86,7 +80,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const { data } = await axios.post('/auth/register', userData)
+      const { data } = await api.post('/auth/register', userData)
       setToken(data.accessToken)
       setUser(data.user)
       // Registration defaults to persistent login
@@ -94,7 +88,6 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem(REFRESH_KEY, data.refreshToken)
       sessionStorage.removeItem(TOKEN_KEY)
       sessionStorage.removeItem(REFRESH_KEY)
-      axios.defaults.headers.common['Authorization'] = `Bearer ${data.accessToken}`
       toast.success('Registration successful!')
       return data
     } catch (error) {
@@ -110,13 +103,12 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem(REFRESH_KEY)
     sessionStorage.removeItem(TOKEN_KEY)
     sessionStorage.removeItem(REFRESH_KEY)
-    delete axios.defaults.headers.common['Authorization']
     toast.success('Logged out successfully')
   }
 
   const updateProfile = async (profileData) => {
     try {
-      const { data } = await axios.put('/auth/profile', profileData)
+      const { data } = await api.put('/auth/profile', profileData)
       setUser(data.user)
       toast.success('Profile updated successfully!')
       return data

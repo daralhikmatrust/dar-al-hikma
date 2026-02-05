@@ -20,7 +20,7 @@ import {
   FiEyeOff
 } from 'react-icons/fi'
 export default function AdminDashboard() {
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+  const API_BASE = api.defaults.baseURL
   const { user } = useAuth()
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)

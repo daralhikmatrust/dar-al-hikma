@@ -41,15 +41,16 @@ api.interceptors.response.use(
       })
     }
 
-    // Handle 401 - Unauthorized
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Handle 401 - Unauthorized (skip retry for refresh-token request to avoid loop)
+    const isRefreshRequest = originalRequest?.url?.includes?.('refresh-token')
+    if (error.response?.status === 401 && !originalRequest._retry && !isRefreshRequest) {
       originalRequest._retry = true
 
       try {
         const refreshToken = localStorage.getItem(REFRESH_KEY) || sessionStorage.getItem(REFRESH_KEY)
         const preferredStorage = localStorage.getItem(REFRESH_KEY) ? localStorage : sessionStorage
         if (refreshToken) {
-          const { data } = await axios.post(`${API_URL}/auth/refresh-token`, {
+          const { data } = await api.post('/auth/refresh-token', {
             refreshToken
           })
           preferredStorage.setItem(TOKEN_KEY, data.accessToken)
