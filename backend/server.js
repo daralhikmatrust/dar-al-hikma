@@ -4,7 +4,7 @@ import express from "express";
 import cors from "cors";
 import { initDatabase, checkDatabaseHealth } from "./utils/db.js";
 
-// Route imports (keep these as they are)
+// Route imports
 import authRoutes from "./routes/auth.routes.js";
 import projectRoutes from "./routes/project.routes.js";
 import donationRoutes from "./routes/donation.routes.js";
@@ -21,34 +21,25 @@ import aboutusRoutes from "./routes/aboutus.routes.js";
 
 const app = express();
 
-// 2️⃣ Optimized CORS for Production Performance
-const allowedOrigins = [
-  'https://dar-al-hikma.vercel.app',
-  'https://www.daralhikma.org',
-  'https://daralhikma.org',
-  'http://localhost:5173'
-];
-
+// 2️⃣ Updated Middlewares for Razorpay & Security
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
-      callback(null, true);
-    } else {
-      callback(new Error('CORS blocked'));
-    }
-  },
+  origin: [
+    'https://dar-al-hikma.vercel.app', 
+    'https://www.daralhikma.org',
+    'https://daralhikma.org',
+    'http://localhost:5173' // Keep for local testing
+  ],
   credentials: true,
-  exposedHeaders: ["x-rtb-fingerprint-id"],
+  exposedHeaders: ["x-rtb-fingerprint-id"], // 🔥 Crucial for Razorpay
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  // Preflight cache: Browsers won't ask permission again for 10 mins
-  maxAge: 600 
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "x-rtb-fingerprint-id"],
+  maxAge: 600 // Caches CORS permission for 10 minutes
 }));
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// 3️⃣ SELF-PING HACK: Keeps Render Awake (Instant Response)
-// This pings your health check every 14 minutes so it never "sleeps"
+// 3️⃣ Self-Ping Hack (Keeps Render Awake)
 setInterval(() => {
   fetch(`https://dar-al-hikma-backend.onrender.com/health`)
     .then(() => console.log("☀️ Keep-alive ping successful"))
@@ -58,14 +49,18 @@ setInterval(() => {
 // 4️⃣ Health Check
 app.get("/health", async (req, res) => {
   const dbHealth = await checkDatabaseHealth();
-  res.json({ success: dbHealth.healthy, time: new Date().toISOString() });
+  res.json({
+    success: dbHealth.healthy,
+    message: dbHealth.healthy ? "Healthy" : "DB Connection Issue",
+    time: new Date().toISOString(),
+  });
 });
 
 // 5️⃣ API Routes
-app.use("/api/webhooks", webhookRoutes); 
+app.use("/api/webhooks", webhookRoutes); // Public endpoint for Razorpay/Stripe
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
-app.use("/api/donations", donationRoutes); // Payment processing happens here
+app.use("/api/donations", donationRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/donors", donorRoutes);
 app.use("/api/media", mediaRoutes);
@@ -76,21 +71,23 @@ app.use("/api/events", eventRoutes);
 app.use("/api/testimonials", testimonialRoutes);
 app.use("/api/about-us", aboutusRoutes);
 
-// 6️⃣ Global Error Handler
+// 6️⃣ Global error handler
 app.use((err, req, res, next) => {
-  res.status(err.status || 500).json({ success: false, message: err.message });
+  console.error("❌ Global Error:", { message: err.message, code: err.code });
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error"
+  });
 });
 
-// 7️⃣ FAST STARTUP: Don't block the server for the DB
+// 7️⃣ Start server (Non-blocking DB init)
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server instant-ready on port ${PORT}`);
+  console.log(`🚀 Server ready on port ${PORT}`);
   
-  // Connect to DB in background so Render health-check passes instantly
+  // Background DB connection
   initDatabase()
-    .then(() => console.log("✅ Database linked and ready"))
-    .catch(err => {
-      console.error("❌ DB background connection failed:", err.message);
-    });
+    .then(() => console.log("✅ Database initialized"))
+    .catch(error => console.error("❌ DB init failed:", error.message));
 });
