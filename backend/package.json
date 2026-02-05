@@ -1,0 +1,43 @@
+{
+  "name": "dar-al-hikma-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Dar Al Hikma Trust",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "seed": "node utils/seed.js",
+    "seed:postgres": "node utils/seed-postgres.js",
+    "create-admin": "node utils/create-admin.js",
+    "admin-web": "node utils/add-admin-web.js"
+  },
+  "keywords": [
+    "trust",
+    "donation",
+    "charity"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^7.2.0",
+    "@supabase/supabase-js": "^2.57.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.1",
+    "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.7",
+    "pdfkit": "^0.14.0",
+    "pg": "^8.16.3",
+    "prisma": "^7.2.0",
+    "razorpay": "^2.9.2",
+    "stripe": "^14.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
