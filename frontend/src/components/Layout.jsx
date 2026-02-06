@@ -28,9 +28,9 @@ export default function Layout() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col overflow-x-hidden">
       <Navbar />
-      <main className="flex-grow">
+      <main className="flex-grow min-h-0 w-full">
         <Outlet />
       </main>
       <Footer />

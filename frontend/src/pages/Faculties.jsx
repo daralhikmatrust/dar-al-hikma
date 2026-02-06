@@ -189,23 +189,23 @@ export default function Faculties() {
       </section>
 
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
-        <div className="flex gap-6 md:gap-8">
-          {/* Left sidebar: categories */}
-          <aside className="w-56 md:w-60 bg-slate-900/95 text-white rounded-2xl overflow-hidden shadow-lg flex-shrink-0 border border-slate-800">
+        <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
+          {/* Left sidebar: categories - horizontal scroll on mobile, vertical on desktop */}
+          <aside className="lg:w-60 w-full bg-slate-900/95 text-white rounded-2xl overflow-hidden shadow-lg flex-shrink-0 border border-slate-800">
             <div className="px-5 py-4 border-b border-white/10 text-xs font-semibold tracking-[0.18em] uppercase text-slate-200">
               Categories
             </div>
-            <div className="max-h-[520px] overflow-y-auto">
+            <div className="flex flex-row lg:flex-col overflow-x-auto lg:overflow-x-hidden lg:overflow-y-auto lg:max-h-[520px] py-2 lg:py-0 custom-scrollbar">
               {categoryItems.map((cat) => {
                 const active = selectedCategory === cat.label
                 return (
                   <button
                     key={cat.id}
                     type="button"
-                    className={`w-full text-left px-5 py-2.5 text-sm transition-colors relative ${
+                    className={`lg:w-full shrink-0 lg:shrink text-left px-5 py-3 lg:py-2.5 text-sm transition-colors relative min-h-[44px] touch-manipulation whitespace-nowrap lg:whitespace-normal ${
                       active
                         ? 'bg-slate-800 text-primary-100 font-semibold'
-                        : 'hover:bg-white/5 text-slate-100/85'
+                        : 'hover:bg-white/5 active:bg-white/10 text-slate-100/85'
                     }`}
                     onClick={() => setSelectedCategory(cat.label)}
                   >

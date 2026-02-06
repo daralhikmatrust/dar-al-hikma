@@ -67,7 +67,7 @@ export default function Projects() {
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
       
       {/* --- HERO SECTION --- */}
-      <section className="bg-white pt-24 pb-10 border-b border-slate-200 relative overflow-hidden">
+      <section className="bg-white pt-24 pb-10 border-b border-slate-200 relative overflow-x-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-30 pointer-events-none">
             <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]"></div>

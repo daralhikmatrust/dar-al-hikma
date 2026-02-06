@@ -75,8 +75,7 @@ export default function Home() {
     <div className="font-sans text-slate-900 bg-white selection:bg-primary-100">
       
       {/* --- HERO SECTION --- */}
-      {/* Updated: Reduced top padding (pt-4 lg:pt-8) to move slider up */}
-      <section className="relative pt-2 pb-16 lg:pt-2 lg:pb-24 bg-white overflow-hidden">
+      <section className="relative pt-2 pb-16 lg:pt-2 lg:pb-24 bg-white overflow-x-hidden">
         {/* Abstract Backgrounds */}
         <div className="absolute top-0 right-0 -z-10 w-[800px] h-[800px] bg-gradient-to-b from-primary-50 to-white rounded-full blur-3xl opacity-60 translate-x-1/3 -translate-y-1/4"></div>
         <div className="absolute bottom-0 left-0 -z-10 w-[600px] h-[600px] bg-gradient-to-t from-slate-50 to-white rounded-full blur-3xl opacity-60 -translate-x-1/3 translate-y-1/4"></div>
@@ -131,7 +130,7 @@ export default function Home() {
             </div>
 
             {/* Right Side - Slider (Restored Original Logic) */}
-            <div className="relative w-full rounded-[2rem] overflow-hidden shadow-2xl shadow-slate-200 border-4 border-white bg-slate-100 h-[450px] lg:h-[550px]">
+            <div className="relative w-full rounded-2xl lg:rounded-[2rem] overflow-hidden shadow-2xl shadow-slate-200 border-4 border-white bg-slate-100 min-h-[280px] h-[320px] sm:h-[400px] lg:h-[550px]">
               {slides.length === 0 ? (
                 <div className="absolute inset-0 flex items-center justify-center bg-slate-100 animate-pulse">
                   <div className="w-full h-full bg-slate-200 animate-pulse" />
@@ -179,7 +178,7 @@ export default function Home() {
 
       {/* --- STATS STRIP --- */}
       {stats && (
-        <section className="bg-slate-900 text-white py-16 relative overflow-hidden">
+        <section className="bg-slate-900 text-white py-16 relative overflow-x-hidden">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10"></div>
           <div className="container-custom px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-slate-800 text-center">

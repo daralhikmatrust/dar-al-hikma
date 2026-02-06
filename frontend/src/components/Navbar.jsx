@@ -173,7 +173,7 @@ export default function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-all duration-300 ${
+      className={`sticky top-0 z-50 transition-all duration-300 overflow-visible ${
         scrolled
           ? 'bg-white shadow-md border-b border-slate-200'
           : 'bg-white/95 backdrop-blur-sm border-b border-slate-100'
@@ -252,7 +252,7 @@ export default function Navbar() {
                   </button>
 
                   {isOpen && (
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-60 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-40">
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-60 max-h-[70vh] overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-[60] custom-scrollbar">
                       {item.items?.map((sub, i) => (
                         <div
                           key={`${item.id}-${sub.id || i}`}
@@ -327,36 +327,36 @@ export default function Navbar() {
         </div>
 
         {mobileOpen && (
-          <div ref={mobileMenuRef} className="lg:hidden bg-transparent flex justify-center">
-            <div className="py-2 w-full flex justify-center">
-              <div className="w-[92%] max-w-sm mt-1 rounded-3xl shadow-2xl border border-slate-200 bg-white overflow-hidden">
-                <nav className="space-y-1 px-4 pt-3 pb-2">
+          <div ref={mobileMenuRef} className="lg:hidden absolute top-full left-0 right-0 z-[60] bg-transparent flex justify-center max-h-[calc(100vh-5rem)] overflow-y-auto">
+            <div className="py-2 w-full flex justify-center px-2">
+              <div className="w-full max-w-sm mt-1 rounded-3xl shadow-2xl border border-slate-200 bg-white overflow-visible min-w-0">
+                <nav className="space-y-1 px-4 pt-3 pb-2 max-h-[calc(100vh-12rem)] overflow-y-auto">
                   {NAV_ITEMS.map((item) => {
                     const Icon = item.icon
                     if (item.type === 'link') {
                       const active = isActive(item.to)
                       return (
-                        <Link key={item.id} to={item.to} className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold ${active ? 'bg-primary-50 text-primary-700 border-l-4 border-primary-600' : 'text-slate-700 hover:bg-slate-50'}`} onClick={() => setMobileOpen(false)}>
-                          {Icon && <Icon className={`w-5 h-5 ${active ? 'text-primary-600' : 'text-slate-500'}`} />}
+                        <Link key={item.id} to={item.to} className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold min-h-[44px] ${active ? 'bg-primary-50 text-primary-700 border-l-4 border-primary-600' : 'text-slate-700 hover:bg-slate-50 active:bg-slate-100'}`} onClick={() => setMobileOpen(false)}>
+                          {Icon && <Icon className={`w-5 h-5 shrink-0 ${active ? 'text-primary-600' : 'text-slate-500'}`} />}
                           {item.label}
                         </Link>
                       )
                     }
                     const isSectionOpen = openMobileSection === item.id
                     return (
-                      <div key={item.id} className="border border-slate-100 rounded-xl overflow-hidden">
-                        <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 text-slate-800 text-sm font-semibold" onClick={() => setOpenMobileSection(isSectionOpen ? null : item.id)}>
+                      <div key={item.id} className="border border-slate-100 rounded-xl overflow-visible">
+                        <button type="button" className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 text-slate-800 text-sm font-semibold min-h-[44px] active:bg-slate-100" onClick={() => setOpenMobileSection(isSectionOpen ? null : item.id)}>
                           <span className="flex items-center gap-2">
-                            {Icon && <Icon className="w-5 h-5 text-slate-500" />}
+                            {Icon && <Icon className="w-5 h-5 shrink-0 text-slate-500" />}
                             {item.label}
                           </span>
-                          <FiChevronDown className={`w-4 h-4 transition-transform ${isSectionOpen ? 'rotate-180' : ''}`} />
+                          <FiChevronDown className={`w-4 h-4 shrink-0 transition-transform ${isSectionOpen ? 'rotate-180' : ''}`} />
                         </button>
                         {isSectionOpen && (
-                          <div className="bg-white">
+                          <div className="bg-white max-h-[50vh] overflow-y-auto overscroll-contain custom-scrollbar">
                             {item.items?.map((sub, i) => (
-                              <Link key={`${item.id}-${i}`} to={sub.to} className="flex items-center gap-2 px-6 py-2.5 text-sm text-slate-700 hover:bg-slate-50" onClick={() => { setMobileOpen(false); setOpenMobileSection(null); }}>
-                                {sub.icon && <sub.icon className="w-4 h-4 text-slate-400" />}
+                              <Link key={`${item.id}-${i}`} to={sub.to} className="flex items-center gap-2 px-6 py-3 text-sm text-slate-700 hover:bg-slate-50 active:bg-slate-100 min-h-[44px]" onClick={() => { setMobileOpen(false); setOpenMobileSection(null); }}>
+                                {sub.icon && <sub.icon className="w-4 h-4 shrink-0 text-slate-400" />}
                                 {sub.label}
                               </Link>
                             ))}
@@ -366,8 +366,8 @@ export default function Navbar() {
                     )
                   })}
                 </nav>
-                <div className="px-4 pt-3 pb-4 border-t border-slate-200 bg-slate-50/60">
-                  <Link to="/donate" className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold rounded-xl shadow-md transition-all duration-200" onClick={() => setMobileOpen(false)}>
+                <div className="px-4 pt-3 pb-4 border-t border-slate-200 bg-slate-50/60 sticky bottom-0">
+                  <Link to="/donate" className="flex items-center justify-center gap-2 w-full px-4 py-3.5 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold rounded-xl shadow-md transition-all duration-200 active:scale-[0.98]" onClick={() => setMobileOpen(false)}>
                     <FiHeart className="w-5 h-5" /> Donate Now
                   </Link>
                 </div>

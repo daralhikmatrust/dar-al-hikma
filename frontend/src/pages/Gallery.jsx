@@ -42,7 +42,7 @@ export default function Gallery() {
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
       
       {/* --- HERO SECTION --- */}
-      <section className="bg-white pt-24 pb-12 border-b border-slate-200 relative overflow-hidden">
+      <section className="bg-white pt-24 pb-12 border-b border-slate-200 relative overflow-x-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-40 pointer-events-none">
             <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px]"></div>
