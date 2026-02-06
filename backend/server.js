@@ -26,10 +26,10 @@ const app = express();
 
 // 4️⃣ Secure CORS Configuration
 const allowedOrigins = [
-  'https://dar-al-hikma.vercel.app',
-  'https://www.daralhikma.org',
-  'https://daralhikma.org',
-  'http://localhost:5173'
+  'https://www.daralhikma.org',      // Your new GoDaddy domain
+  'https://daralhikma.org',          // Non-www version
+  'https://dar-al-hikma.vercel.app', // Keep your Vercel backup URL
+  'http://localhost:5173'            // Local development
 ];
 
 app.use(cors({
