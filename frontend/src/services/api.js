@@ -1,11 +1,12 @@
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API_URL = import.meta.env.VITE_API_URL || 'https://dar-al-hikma-backend.onrender.com/api'
 const TOKEN_KEY = 'token'
 const REFRESH_KEY = 'refreshToken'
 
 const api = axios.create({
   baseURL: API_URL,
+  withCredentials: true, // 🔥 REQUIRED: Allows cookies/sessions to work across domains
   headers: {
     'Content-Type': 'application/json'
   }
@@ -17,7 +18,8 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
-  // FormData: let browser set Content-Type with boundary (required for file uploads)
+  
+  // FormData: let browser set Content-Type with boundary
   if (config.data instanceof FormData) {
     delete config.headers['Content-Type']
   }
@@ -30,18 +32,17 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config
 
-    // Handle network errors (backend not running)
+    // Handle network errors (backend sleeping or down)
     if (!error.response) {
-      console.error('Network error: Backend server may not be running')
-      console.error('Make sure the backend server is running on http://localhost:5000')
+      console.error('Network error: Backend server is likely sleeping or unreachable.')
       return Promise.reject({
         ...error,
-        message: 'Cannot connect to server. Please ensure the backend is running.',
+        message: 'Cannot connect to server. The backend might be waking up (Render cold start). Please wait a moment and try again.',
         isNetworkError: true
       })
     }
 
-    // Handle 401 - Unauthorized (skip retry for refresh-token request to avoid loop)
+    // Handle 401 - Unauthorized
     const isRefreshRequest = originalRequest?.url?.includes?.('refresh-token')
     if (error.response?.status === 401 && !originalRequest._retry && !isRefreshRequest) {
       originalRequest._retry = true
@@ -49,6 +50,7 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem(REFRESH_KEY) || sessionStorage.getItem(REFRESH_KEY)
         const preferredStorage = localStorage.getItem(REFRESH_KEY) ? localStorage : sessionStorage
+        
         if (refreshToken) {
           const { data } = await api.post('/auth/refresh-token', {
             refreshToken
@@ -63,9 +65,8 @@ api.interceptors.response.use(
         localStorage.removeItem(REFRESH_KEY)
         sessionStorage.removeItem(TOKEN_KEY)
         sessionStorage.removeItem(REFRESH_KEY)
-        // Don't redirect if it's a network error
+        
         if (!refreshError.isNetworkError) {
-          // Redirect to admin login if the failed request was for admin API
           const isAdminRequest = originalRequest?.url?.includes('/admin/')
           window.location.href = isAdminRequest ? '/admin/login' : '/login'
         }
@@ -75,10 +76,9 @@ api.interceptors.response.use(
 
     // Handle 500 - Internal Server Error
     if (error.response?.status === 500) {
-      console.error('Server error (500):', error.response?.data)
       return Promise.reject({
         ...error,
-        message: error.response?.data?.message || 'Server error. Please check backend logs.',
+        message: error.response?.data?.message || 'Server error. Please try again later.',
         isServerError: true
       })
     }
@@ -88,4 +88,3 @@ api.interceptors.response.use(
 )
 
 export default api
-
