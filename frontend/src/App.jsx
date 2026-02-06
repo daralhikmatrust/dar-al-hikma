@@ -1,7 +1,9 @@
+import { useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { PrivateRoute } from './components/PrivateRoute'
 import { AdminRoute } from './components/AdminRoute'
+import api from './services/api' // Ensure this points to your updated api.js with withCredentials: true
 
 // Public pages
 import Home from './pages/Home'
@@ -54,15 +56,29 @@ import AdminTestimonials from './pages/admin/Testimonials'
 
 // Layout
 import Layout from './components/Layout'
+import AdminLayout from './components/admin/AdminLayout'
+import ScrollToTop from './components/ScrollToTop'
 
 function CategoryToFacultiesRedirect() {
   const { slug } = useParams()
   return <Navigate to={slug ? `/faculties?category=${encodeURIComponent(slug)}` : '/faculties'} replace />
 }
-import AdminLayout from './components/admin/AdminLayout'
-import ScrollToTop from './components/ScrollToTop'
 
 function App() {
+  // 🚀 PERFORMANCE FIX: Warm up the Render backend immediately on load
+  // This helps eliminate the 3-minute "Cold Start" delay for payments
+  useEffect(() => {
+    const warmUp = async () => {
+      try {
+        await api.get('/health');
+        console.log("🚀 Backend warmed up and connection established");
+      } catch (e) {
+        console.log("🌙 Backend is still waking up...");
+      }
+    }
+    warmUp();
+  }, []);
+
   return (
     <AuthProvider>
       <Router
@@ -76,15 +92,23 @@ function App() {
           {/* Public routes */}
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
+            
+            {/* FIXED: Added 'about-us' alias to match Footer links */}
+            <Route path="about-us" element={<Navigate to="/about/who-we-are" replace />} />
             <Route path="about" element={<Navigate to="/about/who-we-are" replace />} />
             <Route path="about/:section" element={<AboutSection />} />
+            
             <Route path="projects" element={<Projects />} />
             <Route path="projects/:id" element={<ProjectDetail />} />
             <Route path="faculties" element={<Faculties />} />
             <Route path="faculties/:facultyName" element={<FacultyDetail />} />
             <Route path="categories" element={<Faculties />} />
             <Route path="categories/:slug" element={<CategoryToFacultiesRedirect />} />
+            
+            {/* FIXED: Added 'media' alias to match Footer links */}
+            <Route path="media" element={<Gallery />} />
             <Route path="gallery" element={<Gallery />} />
+            
             <Route path="contact" element={<Contact />} />
             <Route path="hall-of-fame" element={<HallOfFame />} />
             <Route path="donate" element={<Donate />} />
@@ -139,4 +163,3 @@ function App() {
 }
 
 export default App
-
