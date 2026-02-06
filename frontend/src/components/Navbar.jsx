@@ -17,6 +17,7 @@ import {
   FiHeart
 } from 'react-icons/fi'
 import logo from '../assets/Picsart_26-01-27_19-42-26-791.png'
+import { getStoredFaculties, loadFacultiesWithFallback } from '../utils/faculties'
 
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth()
@@ -33,23 +34,25 @@ export default function Navbar() {
   const mobileMenuRef = useRef(null)
   const dropdownTimeoutRef = useRef(null)
 
-  const [navCategories, setNavCategories] = useState([])
+  const [navCategories, setNavCategories] = useState(() => getStoredFaculties())
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('faculties')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        const active = parsed
-          .filter((c) => (c.status || 'active') === 'active')
-          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-        setNavCategories(active)
-      } else {
-        setNavCategories([])
+    const load = async () => {
+      const stored = getStoredFaculties()
+      if (stored.length > 0) {
+        setNavCategories(stored)
+        return
       }
-    } catch {
-      setNavCategories([])
+      const fromApi = await loadFacultiesWithFallback()
+      setNavCategories(fromApi)
     }
+    load()
+  }, [])
+
+  useEffect(() => {
+    const onUpdate = () => setNavCategories(getStoredFaculties())
+    window.addEventListener('faculties-updated', onUpdate)
+    return () => window.removeEventListener('faculties-updated', onUpdate)
   }, [])
 
   const NAV_ITEMS = [
@@ -74,27 +77,20 @@ export default function Navbar() {
         { id: 'audit', label: 'Audit', to: '/about/audit' }
       ]
     },
-    navCategories.length
-      ? {
-          id: 'categories',
-          type: 'dropdown',
-          label: 'Category',
-          icon: FiBookOpen,
-          items: [
-            { id: 'all', label: 'All', to: '/faculties', slug: '' },
-            ...navCategories.map((cat) => {
-              const slug = cat.slug || cat.id || String(cat.name).toLowerCase().replace(/\s+/g, '-')
-              return { id: `nav-cat-${cat.id}`, label: cat.name, slug, to: `/faculties?category=${encodeURIComponent(cat.name)}` }
-            })
-          ]
-        }
-      : {
-          id: 'categories',
-          type: 'link',
-          label: 'Category',
-          to: '/faculties',
-          icon: FiBookOpen
-        },
+    {
+      id: 'categories',
+      type: 'dropdown',
+      label: 'Category',
+      icon: FiBookOpen,
+      items: [
+        { id: 'all', label: 'All', to: '/faculties', slug: '' },
+        ...navCategories.map((cat) => {
+          const slug = cat.slug || cat.id || String(cat.name).toLowerCase().replace(/\s+/g, '-')
+          return { id: `nav-cat-${cat.id}`, label: cat.name, slug, to: `/faculties?category=${encodeURIComponent(cat.name)}` }
+        }),
+        { id: 'completed', label: 'Successfully Completed', to: '/faculties?category=completed', slug: 'completed' }
+      ]
+    },
     {
       id: 'explore',
       type: 'dropdown',

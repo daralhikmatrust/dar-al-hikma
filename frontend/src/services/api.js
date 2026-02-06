@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://dar-al-hikma-backend.onrender.com/api'
+const API_URL = (import.meta.env.VITE_API_URL || 'https://dar-al-hikma-backend.onrender.com/api').replace(/\/+$/, '')
 const TOKEN_KEY = 'token'
 const REFRESH_KEY = 'refreshToken'
 

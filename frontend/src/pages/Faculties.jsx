@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { FiSearch, FiMapPin, FiFilter, FiHeart } from 'react-icons/fi'
 import api from '../services/api'
+import { getStoredFaculties, loadFacultiesWithFallback } from '../utils/faculties'
 
 export default function Faculties() {
   const navigate = useNavigate()
@@ -36,30 +37,42 @@ export default function Faculties() {
     fetchProjects()
   }, [])
 
-  // Load category definitions from admin-configured list (localStorage)
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('faculties')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        const active = parsed
-          .filter((c) => (c.status || 'active') === 'active')
-          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    const build = (cats) => [
+      { id: 'all', label: 'All', faculty: '' },
+      ...cats.map((cat) => ({
+        id: cat.id,
+        label: cat.name,
+        faculty: cat.name
+      })),
+      { id: 'completed', label: 'Successfully Completed', faculty: '', status: 'completed' }
+    ]
 
-        const built = [
-          { id: 'all', label: 'All', faculty: '' },
-          ...active.map((cat) => ({
-            id: cat.id,
-            label: cat.name,
-            faculty: cat.name
-          })),
-          { id: 'completed', label: 'Successfully Completed', faculty: '', status: 'completed' }
-        ]
-        setCategoryItems(built)
+    const load = async () => {
+      const stored = getStoredFaculties()
+      if (stored.length > 0) {
+        setCategoryItems(build(stored))
+        return
       }
-    } catch {
-      // ignore; keep defaults
+      const fromApi = await loadFacultiesWithFallback()
+      setCategoryItems(build(fromApi))
     }
+    load()
+  }, [])
+
+  useEffect(() => {
+    const onUpdate = () => {
+      const stored = getStoredFaculties()
+      if (stored.length > 0) {
+        setCategoryItems([
+          { id: 'all', label: 'All', faculty: '' },
+          ...stored.map((cat) => ({ id: cat.id, label: cat.name, faculty: cat.name })),
+          { id: 'completed', label: 'Successfully Completed', faculty: '', status: 'completed' }
+        ])
+      }
+    }
+    window.addEventListener('faculties-updated', onUpdate)
+    return () => window.removeEventListener('faculties-updated', onUpdate)
   }, [])
 
   // Sync selected category from URL (supports label or slug - same page filtering)

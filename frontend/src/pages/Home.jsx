@@ -6,6 +6,7 @@ import {
 } from 'react-icons/fi'
 import api from '../services/api'
 import { useEffect, useState } from 'react'
+import { getStoredFaculties, loadFacultiesWithFallback } from '../utils/faculties'
 
 export default function Home() {
   const [stats, setStats] = useState(null)
@@ -343,13 +344,22 @@ const CATEGORY_COLORS = ['from-blue-500 to-indigo-600', 'from-emerald-500 to-tea
 function CategoriesSection() {
   const [categories, setCategories] = useState([])
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('faculties')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setCategories(parsed.filter(c => (c.status || 'active') === 'active').slice(0, 4))
+    const load = async () => {
+      const stored = getStoredFaculties()
+      if (stored.length > 0) {
+        setCategories(stored)
+        return
       }
-    } catch {}
+      const fromApi = await loadFacultiesWithFallback()
+      setCategories(fromApi)
+    }
+    load()
+  }, [])
+
+  useEffect(() => {
+    const onUpdate = () => setCategories(getStoredFaculties())
+    window.addEventListener('faculties-updated', onUpdate)
+    return () => window.removeEventListener('faculties-updated', onUpdate)
   }, [])
 
   if (categories.length === 0) return null
