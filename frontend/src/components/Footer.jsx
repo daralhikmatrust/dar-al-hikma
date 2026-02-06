@@ -69,18 +69,23 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Column 2: Navigation (Span 2) */}
+          {/* Column 2: Navigation (Span 2) - FIXED LINKS */}
           <div className="lg:col-span-2 lg:pl-4">
             <h4 className="text-white font-bold mb-6 text-xs uppercase tracking-[0.2em]">Explore</h4>
             <ul className="space-y-4 text-sm">
-              {['About Us', 'Our Projects', 'Media Gallery', 'Hall of Fame'].map((item) => (
-                <li key={item}>
+              {[
+                { name: 'About Us', path: '/about-us' },
+                { name: 'Our Projects', path: '/projects' },
+                { name: 'Media Gallery', path: '/media' },
+                { name: 'Hall of Fame', path: '/hall-of-fame' }
+              ].map((item) => (
+                <li key={item.name}>
                   <button 
-                    onClick={() => handleLinkClick(`/${item.toLowerCase().replace(/\s+/g, '-')}`)}
+                    onClick={() => handleLinkClick(item.path)}
                     className="hover:text-indigo-400 transition-colors text-left flex items-center gap-2 group"
                   >
                     <span className="w-1 h-1 rounded-full bg-slate-800 group-hover:bg-indigo-500 transition-all"></span>
-                    {item}
+                    {item.name}
                   </button>
                 </li>
               ))}
