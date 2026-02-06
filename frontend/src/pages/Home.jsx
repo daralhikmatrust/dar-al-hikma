@@ -7,6 +7,7 @@ import {
 import api from '../services/api'
 import { useEffect, useState } from 'react'
 import { getStoredFaculties, loadFacultiesWithFallback } from '../utils/faculties'
+import { formatINR, normalizeAmount } from '../utils/currency'
 
 export default function Home() {
   const [stats, setStats] = useState(null)
@@ -185,7 +186,7 @@ export default function Home() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-slate-800 text-center">
               <div className="p-4 group">
                 <div className="mb-2 text-primary-400 group-hover:scale-110 transition-transform duration-300 inline-block"><FiTrendingUp size={32} /></div>
-                <div className="text-4xl lg:text-5xl font-extrabold mb-1 tracking-tight">{stats.totalDonations?.toLocaleString('en-IN', { notation: 'compact' }) || '0'}</div>
+                <div className="text-4xl lg:text-5xl font-extrabold mb-1 tracking-tight">{normalizeAmount(stats.totalDonations).toLocaleString('en-IN', { notation: 'compact' }) || '0'}</div>
                 <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Funds Raised (INR)</div>
               </div>
               <div className="p-4 group">
@@ -450,11 +451,11 @@ function FeaturedProjects() {
             {project.targetAmount > 0 && (
                <div className="mb-6 bg-slate-700/50 p-4 rounded-xl border border-slate-700/50">
                   <div className="flex justify-between text-xs font-bold text-slate-300 mb-2">
-                     <span>Raised: ₹{project.currentAmount || 0}</span>
-                     <span>Goal: ₹{project.targetAmount}</span>
+                     <span>Raised: {formatINR(project.currentAmount || 0)}</span>
+                     <span>Goal: {formatINR(project.targetAmount)}</span>
                   </div>
                   <div className="h-2 w-full bg-slate-600 rounded-full overflow-hidden">
-                     <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full" style={{ width: `${Math.min(((project.currentAmount||0)/project.targetAmount)*100, 100)}%` }}></div>
+                     <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full" style={{ width: `${Math.min((normalizeAmount(project.currentAmount) / normalizeAmount(project.targetAmount)) * 100, 100)}%` }}></div>
                   </div>
                </div>
             )}

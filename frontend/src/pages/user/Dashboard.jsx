@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import api from '../../services/api'
+import { formatINR, normalizeAmount } from '../../utils/currency'
 import { FiDownload, FiPrinter, FiLogOut, FiUser, FiMail, FiHeart, FiPhone, FiDollarSign, FiTrendingUp, FiCalendar, FiFilter, FiSearch, FiCopy, FiCheck, FiClock, FiCheckCircle, FiXCircle, FiRefreshCw, FiArrowRight, FiFileText, FiEdit2, FiSave, FiX } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { INDIAN_STATES, getCitiesForState } from '../../utils/states-countries'
@@ -77,7 +78,7 @@ export default function Dashboard() {
         const status = d.status?.toLowerCase()
         return status === 'completed' || status === 'paid'
       })
-      const calculatedTotal = paidDonations.reduce((sum, d) => sum + (parseFloat(d.amount) || 0), 0)
+      const calculatedTotal = paidDonations.reduce((sum, d) => sum + normalizeAmount(d.amount), 0)
       const calculatedCount = allDonations.length // Total count includes all statuses
       
       // Store stats but frontend will recalculate from donations array for consistency
@@ -405,9 +406,7 @@ export default function Dashboard() {
   // ============================================================
 
   // 1. TOTAL DONATED (₹) - Sum of all paid transactions
-  const totalAmount = paidTransactions.reduce((sum, d) => {
-    return sum + (parseFloat(d.amount) || 0)
-  }, 0)
+  const totalAmount = paidTransactions.reduce((sum, d) => sum + normalizeAmount(d.amount), 0)
 
   // 2. COMPLETED (₹) - MUST be identical to Total Donated
   // This ensures financial consistency - they represent the same value
@@ -422,9 +421,7 @@ export default function Dashboard() {
   // 5. THIS MONTH (₹) - Sum of paid transactions in current month
   const thisMonthAmount = paidTransactions
     .filter(d => isCurrentMonth(d.createdAt || d.created_at))
-    .reduce((sum, d) => {
-      return sum + (parseFloat(d.amount) || 0)
-    }, 0)
+    .reduce((sum, d) => sum + normalizeAmount(d.amount), 0)
 
   if (loading) {
     return (
@@ -764,7 +761,7 @@ export default function Dashboard() {
                 <FiDollarSign className="w-6 h-6" />
               </div>
             </div>
-            <p className="text-3xl font-bold mb-1">₹{totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</p>
+            <p className="text-3xl font-bold mb-1">{formatINR(totalAmount)}</p>
             <p className="text-xs text-emerald-100">{completedCount} paid transaction{completedCount !== 1 ? 's' : ''}</p>
           </div>
 
@@ -797,7 +794,7 @@ export default function Dashboard() {
                 <FiCalendar className="w-6 h-6" />
               </div>
             </div>
-            <p className="text-3xl font-bold mb-1">₹{thisMonthAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</p>
+            <p className="text-3xl font-bold mb-1">{formatINR(thisMonthAmount)}</p>
             <p className="text-xs text-purple-100">Current month</p>
           </div>
         </div>
@@ -904,7 +901,7 @@ export default function Dashboard() {
                           </td>
                         <td className="py-5 px-6">
                           <div className="text-xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
-                            ₹{parseFloat(donation.amount || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                            {formatINR(donation.amount || 0)}
                           </div>
                         </td>
                         <td className="py-5 px-6">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import api from '../../services/api'
+import { formatINR, normalizeAmount } from '../../utils/currency'
 import { useAuth } from '../../contexts/AuthContext'
 import { getPaymentTime } from '../../utils/paymentTime'
 import { 
@@ -52,10 +53,10 @@ export default function AdminDashboard() {
   }
 
   const formatAmount = (amount) => {
-    const num = parseFloat(amount || 0)
-    if (num >= 10000000) return `₹${(num / 10000000).toFixed(2)} Cr`
-    if (num >= 100000) return `₹${(num / 100000).toFixed(2)} L`
-    return `₹${num.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
+    const num = normalizeAmount(amount || 0)
+    if (num >= 10000000) return formatINR(num / 10000000) + ' Cr'
+    if (num >= 100000) return formatINR(num / 100000) + ' L'
+    return formatINR(num)
   }
 
   const getStatusBadge = (status) => {
@@ -241,7 +242,7 @@ export default function AdminDashboard() {
                   </td>
                   <td className="py-4 px-6">
                     <div className="text-sm font-bold text-slate-900">
-                      ₹{parseFloat(donation.amount || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                      {formatINR(donation.amount || 0)}
                     </div>
                     <div className="text-xs text-slate-500 mt-1">
                       {donation.donationType || donation.donation_type || 'General'}

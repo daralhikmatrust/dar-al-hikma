@@ -5,16 +5,7 @@ import api from '../services/api'
 import toast from 'react-hot-toast'
 import { useAuth } from '../contexts/AuthContext'
 import { getPaymentTime } from '../utils/paymentTime'
-
-function formatCurrency(val, currency = 'INR') {
-    const n = Number(val)
-    if (Number.isNaN(n) || n < 0) return '0'
-    return new Intl.NumberFormat('en-IN', {
-        style: 'currency',
-        currency: currency,
-        minimumFractionDigits: 2
-    }).format(n)
-}
+import { formatAmountByCurrency } from '../utils/currency'
 
 function formatDate(dateString) {
     if (!dateString) return 'N/A'
@@ -245,7 +236,7 @@ export default function PaymentSuccess() {
                             <div className="flex justify-between">
                                 <span className="text-gray-600">Amount Paid:</span>
                                 <span className="text-2xl font-bold text-green-700">
-                                    {formatCurrency(donation.amount, donation.currency)}
+                                    {formatAmountByCurrency(donation.amount, donation.currency)}
                                 </span>
                             </div>
                             <div className="flex justify-between">

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import api from '../services/api'
+import { formatINR, normalizeAmount } from '../utils/currency'
 import PageHeader from '../components/PageHeader'
 import { FiMapPin, FiCalendar, FiTarget, FiCheckCircle } from 'react-icons/fi'
 
@@ -180,26 +181,16 @@ export default function ProjectDetail() {
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
                           <span>Raised</span>
-                          <span className="font-semibold">
-                            ₹
-                            {Number(project.currentAmount || 0).toLocaleString('en-IN', {
-                              maximumFractionDigits: 0
-                            })}
-                          </span>
+                          <span className="font-semibold">{formatINR(project.currentAmount || 0)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Target</span>
-                          <span>
-                            ₹
-                            {Number(project.targetAmount || 0).toLocaleString('en-IN', {
-                              maximumFractionDigits: 0
-                            })}
-                          </span>
+                          <span>{formatINR(project.targetAmount || 0)}</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
                             className="bg-primary-600 h-2 rounded-full"
-                            style={{ width: `${Math.min((project.currentAmount / project.targetAmount) * 100, 100)}%` }}
+                            style={{ width: `${Math.min((normalizeAmount(project.currentAmount) / normalizeAmount(project.targetAmount)) * 100, 100)}%` }}
                           ></div>
                         </div>
                       </div>

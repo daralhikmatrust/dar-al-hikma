@@ -27,13 +27,9 @@ import {
   FiPercent,
 } from 'react-icons/fi'
 
-const ZAKAT_RATE = 0.025
+import { formatINR, normalizeAmount } from '../utils/currency'
 
-function formatINR(val) {
-  const n = Number(val)
-  if (Number.isNaN(n) || n < 0) return '₹0'
-  return '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
+const ZAKAT_RATE = 0.025
 
 function parseInput(val) {
   if (val === '' || val == null) return 0
@@ -97,8 +93,7 @@ export default function ZakatCalculator() {
 
 
 
-  const formatNumber = (val) =>
-    Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const formatNumber = (val) => normalizeAmount(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 
   const assetValues = useMemo(
@@ -122,7 +117,7 @@ export default function ZakatCalculator() {
     () => Math.max(0, totalAssets - totalDeductions),
     [totalAssets, totalDeductions]
   )
-  const zakatAmount = useMemo(() => zakatableWealth * ZAKAT_RATE, [zakatableWealth])
+  const zakatAmount = useMemo(() => normalizeAmount(zakatableWealth * ZAKAT_RATE), [zakatableWealth])
 
   const updateAsset = (key, val) => {
     // Only allow numbers and decimal point

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import api from '../../services/api'
+import { formatINR, normalizeAmount } from '../../utils/currency'
 import { FiDownload, FiPrinter } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { getPaymentTime } from '../../utils/paymentTime'
@@ -53,7 +54,7 @@ export default function Donations() {
       })
       setDonations(sortedDonations)
       // Calculate total from donations if not provided
-      const calculatedTotal = sortedDonations.reduce((sum, d) => sum + (parseFloat(d.amount) || 0), 0)
+      const calculatedTotal = sortedDonations.reduce((sum, d) => sum + normalizeAmount(d.amount), 0)
       setTotal(data.total || calculatedTotal)
     } catch (error) {
       console.error('Failed to fetch donations:', error)
@@ -122,7 +123,7 @@ export default function Donations() {
               <div>
                 <p className="text-gray-600 text-sm mb-1">Total Contributions</p>
                 <p className="text-3xl font-bold text-primary-600">
-                  {total.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                  {formatINR(total)}
                 </p>
               </div>
               <div>
@@ -164,7 +165,7 @@ export default function Donations() {
                         })}
                       </td>
                       <td className="py-3 px-4 font-semibold">
-                        ₹{donation.amount?.toLocaleString('en-IN', { maximumFractionDigits: 2 }) || '0'}
+                        {formatINR(donation.amount || 0)}
                       </td>
                       <td className="py-3 px-4">{donation.donationType || donation.donation_type || 'General'}</td>
                       <td className="py-3 px-4">

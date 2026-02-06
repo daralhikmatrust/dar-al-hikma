@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import api from '../../services/api'
+import { formatINR, normalizeAmount } from '../../utils/currency'
 import toast from 'react-hot-toast'
 import { FiUser, FiHeart } from 'react-icons/fi'
 import { INDIAN_STATES, getCitiesForState } from '../../utils/states-countries'
@@ -140,7 +141,7 @@ export default function Donate() {
 
       // Create order
       const orderPayload = {
-        amount: parseFloat(formData.amount),
+        amount: normalizeAmount(formData.amount),
         currency: formData.currency,
         donationType: formData.donationType,
         project: formData.project || null,
@@ -270,7 +271,7 @@ export default function Donate() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (!formData.amount || parseFloat(formData.amount) <= 0) {
+    if (!formData.amount || normalizeAmount(formData.amount) <= 0) {
       toast.error('Please enter a valid amount')
       return
     }

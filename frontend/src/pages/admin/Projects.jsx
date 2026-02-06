@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../../services/api'
+import { formatINR, normalizeAmount } from '../../utils/currency'
 import toast from 'react-hot-toast'
 import { FiPlus, FiEdit, FiTrash2, FiSearch, FiFilter, FiX, FiUpload } from 'react-icons/fi'
 import { INDIAN_STATES, COUNTRIES, getCitiesForState } from '../../utils/states-countries'
@@ -437,7 +438,7 @@ export default function AdminProjects() {
                 ) : (
                   filteredProjects.map((project, index) => {
                     const progress = project.targetAmount > 0 
-                      ? Math.min((project.currentAmount / project.targetAmount) * 100, 100)
+                      ? Math.min((normalizeAmount(project.currentAmount) / normalizeAmount(project.targetAmount)) * 100, 100)
                       : (project.progress || 0)
                     return (
                       <tr 

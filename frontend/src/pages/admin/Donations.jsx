@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../../services/api'
+import { formatINR, formatCurrency } from '../../utils/currency'
 import { getPaymentTime } from '../../utils/paymentTime'
 import { FiDownload, FiSearch, FiFilter, FiX, FiFileText, FiUser, FiExternalLink, FiAlertCircle } from 'react-icons/fi'
 import toast from 'react-hot-toast'
@@ -190,9 +191,8 @@ export default function AdminDonations() {
         addText(donorName, 50, y)
         pdf.setTextColor(6, 95, 70)
         pdf.setFont('helvetica', 'bold')
-        const amount = parseFloat(donation.amount || 0)
-        addText(
-          'INR ' + amount.toLocaleString('en-IN', { maximumFractionDigits: 2 }),
+        const amount = formatCurrency(donation.amount || 0)
+        addText('INR ' + amount,
           120,
           y,
           { align: 'right' }
@@ -469,7 +469,7 @@ export default function AdminDonations() {
                         </td>
                         <td className="py-4 px-6">
                           <div className="text-sm font-bold text-slate-900">
-                            ₹{parseFloat(donation.amount || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                            {formatINR(donation.amount || 0)}
                           </div>
                         </td>
                         <td className="py-4 px-6">

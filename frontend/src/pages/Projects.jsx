@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../services/api'
+import { formatINR, normalizeAmount } from '../utils/currency'
 import { FiSearch, FiArrowRight, FiTarget, FiFilter, FiActivity, FiLayers } from 'react-icons/fi'
 
 export default function Projects() {
@@ -225,12 +226,12 @@ export default function Projects() {
                       <div className="mb-4 pt-4 border-t border-slate-50">
                         <div className="flex justify-between items-end text-xs text-slate-600 mb-1.5">
                           <span className="font-semibold text-slate-900">{project.progress || 0}% Funded</span>
-                          <span className="text-slate-400">Target: ₹{Number(project.targetAmount).toLocaleString()}</span>
+                          <span className="text-slate-400">Target: {formatINR(project.targetAmount)}</span>
                         </div>
                         <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                           <div
                             className="bg-primary-600 h-1.5 rounded-full transition-all duration-500"
-                            style={{ width: `${Math.min((project.currentAmount / project.targetAmount) * 100, 100)}%` }}
+                            style={{ width: `${Math.min((normalizeAmount(project.currentAmount) / normalizeAmount(project.targetAmount)) * 100, 100)}%` }}
                           ></div>
                         </div>
                       </div>

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { FiSearch, FiMapPin, FiFilter, FiHeart } from 'react-icons/fi'
 import api from '../services/api'
 import { getStoredFaculties, loadFacultiesWithFallback } from '../utils/faculties'
+import { formatINR, normalizeAmount } from '../utils/currency'
 
 export default function Faculties() {
   const navigate = useNavigate()
@@ -265,8 +266,8 @@ export default function Faculties() {
                 </div>
                 <div className="grid md:grid-cols-2 gap-5">
                   {filteredProjects.map((project) => {
-                    const raised = Number(project.currentAmount || 0)
-                    const goal = Number(project.targetAmount || 0)
+                    const raised = normalizeAmount(project.currentAmount)
+                    const goal = normalizeAmount(project.targetAmount)
                     const pct = goal > 0 ? Math.min((raised / goal) * 100, 100) : 0
 
                     return (
@@ -332,10 +333,10 @@ export default function Faculties() {
                               </div>
                               <div className="flex justify-between text-[11px] text-slate-600 mb-3">
                                 <span>
-                                  ₹{raised.toLocaleString('en-IN')} <span className="opacity-70">Raised</span>
+                                  {formatINR(raised)} <span className="opacity-70">Raised</span>
                                 </span>
                                 <span>
-                                  ₹{goal.toLocaleString('en-IN')} <span className="opacity-70">Goal</span>
+                                  {formatINR(goal)} <span className="opacity-70">Goal</span>
                                 </span>
                               </div>
                             </>

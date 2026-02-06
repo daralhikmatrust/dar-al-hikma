@@ -2,12 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { FiCheckCircle, FiHome, FiBarChart2, FiHeart, FiPrinter } from 'react-icons/fi'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
-
-function formatINR(val) {
-  const n = Number(val)
-  if (Number.isNaN(n) || n < 0) return '₹0'
-  return '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
+import { formatINR } from '../../utils/currency'
 
 export default function ZakatSuccess() {
   const location = useLocation()

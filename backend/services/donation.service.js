@@ -7,6 +7,7 @@
 
 import Donation from '../models/Donation.model.js';
 import Project from '../models/Project.model.js';
+import { normalizeAmount, toPaise } from '../utils/currency.js';
 import User from '../models/User.model.js';
 import { DonationStateMachine } from './donation-state-machine.service.js';
 import { IdempotencyService } from './idempotency.service.js';
@@ -92,7 +93,7 @@ export class DonationService {
 
     // Create Razorpay order
     const razorpayOrder = await razorpay.orders.create({
-      amount: Math.round(amount * 100), // Convert to paise
+      amount: toPaise(amount), // Convert to paise (avoids float precision)
       currency,
       receipt: `receipt_${Date.now()}`,
       notes: {
@@ -118,7 +119,7 @@ export class DonationService {
         // Create new donation
         const newDonation = await Donation.create({
           donorId,
-          amount: Number(amount),
+          amount: normalizeAmount(amount),
           currency,
           donationType,
           projectId: project || null,
@@ -226,7 +227,7 @@ export class DonationService {
         }
 
         // Verify amount matches
-        const expectedAmount = Math.round(parseFloat(donation.amount) * 100);
+        const expectedAmount = toPaise(donation.amount);
         if (paymentDetails.amount !== expectedAmount) {
           throw new Error('AMOUNT_MISMATCH');
         }
@@ -427,7 +428,7 @@ export class DonationService {
         }
 
         // Verify amount consistency
-        const expectedAmount = Math.round(parseFloat(donation.amount) * 100);
+        const expectedAmount = toPaise(donation.amount);
         const actualAmount = fullPaymentDetails.amount || paymentDetails.amount;
         
         if (actualAmount !== expectedAmount) {
@@ -616,8 +617,8 @@ export class DonationService {
           );
 
           if (project[0]) {
-            const newAmount = Math.max(0, parseFloat(project[0].current_amount || 0) - parseFloat(donation.amount));
-            const targetAmount = parseFloat(project[0].target_amount || 0);
+            const newAmount = Math.max(0, normalizeAmount(project[0].current_amount || 0) - normalizeAmount(donation.amount));
+            const targetAmount = normalizeAmount(project[0].target_amount || 0);
             const newProgress = targetAmount > 0
               ? Math.min(100, Math.round((newAmount / targetAmount) * 100))
               : 0;
@@ -678,9 +679,9 @@ export class DonationService {
       return;
     }
 
-    const currentAmount = parseFloat(project[0].current_amount || 0);
-    const newAmount = currentAmount + parseFloat(donationAmount);
-    const targetAmount = parseFloat(project[0].target_amount || 0);
+    const currentAmount = normalizeAmount(project[0].current_amount || 0);
+    const newAmount = currentAmount + normalizeAmount(donationAmount);
+    const targetAmount = normalizeAmount(project[0].target_amount || 0);
     const newProgress = targetAmount > 0
       ? Math.min(100, Math.round((newAmount / targetAmount) * 100))
       : (project[0].progress || 0);

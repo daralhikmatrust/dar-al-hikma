@@ -349,7 +349,7 @@ export default function Navbar() {
                           <FiChevronDown className={`w-4 h-4 shrink-0 transition-transform ${isSectionOpen ? 'rotate-180' : ''}`} />
                         </button>
                         {isSectionOpen && (
-                          <div className="bg-white max-h-[50vh] overflow-y-auto overscroll-contain custom-scrollbar">
+                          <div className="bg-white max-h-[70vh] overflow-y-auto overscroll-contain custom-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
                             {item.items?.map((sub, i) => (
                               <Link key={`${item.id}-${i}`} to={sub.to} className="flex items-center gap-2 px-6 py-3 text-sm text-slate-700 hover:bg-slate-50 active:bg-slate-100 min-h-[44px]" onClick={() => { setMobileOpen(false); setOpenMobileSection(null); }}>
                                 {sub.icon && <sub.icon className="w-4 h-4 shrink-0 text-slate-400" />}
