@@ -2,6 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
+/* --- Professional Emerald Color Combination --- */
+/* Target Chrome, Safari, and Edge */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #020617; /* Slate-950: Deepest black-blue track */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #059669; /* Emerald-600: Professional green thumb */
+  border-radius: 20px;
+  border: 2px solid #020617; /* High-contrast padding effect */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #10b981; /* Emerald-500: Vibrant glow on hover */
+  cursor: pointer;
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #059669 #020617;
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
