@@ -3,7 +3,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import nodemailer from "nodemailer"; // Import added
+import nodemailer from "nodemailer";
 
 // 2️⃣ Database utilities
 import { initDatabase, checkDatabaseHealth } from "./utils/db.js";
@@ -41,7 +41,6 @@ app.use(cors({
     if (allowedOrigins.indexOf(origin) !== -1 || isVercelPreview) {
       callback(null, true);
     } else {
-      console.log("CORS Blocked for origin:", origin);
       callback(new Error("Not allowed by CORS"));
     }
   },
@@ -51,59 +50,13 @@ app.use(cors({
 }));
 
 // 5️⃣ Security & Body Parsing
-app.use(helmet({ crossOriginResourcePolicy: false }));
+// Adjusted Helmet to be less restrictive for cross-domain API calls
+app.use(helmet({ 
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: false // Disable if you face issues with external assets
+}));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
-
-// 5b. Contact Form Route (explicit, before other API routes)
-app.post("/api/contact", async (req, res) => {
-  const { name, email, subject, message } = req.body;
-
-  if (!name || !email || !message) {
-    return res.status(400).json({ success: false, message: "Name, email, and message are required." });
-  }
-
-  const emailUser = process.env.EMAIL_USER;
-  const emailPass = process.env.EMAIL_PASS;
-  const ownerEmail = process.env.OWNER_EMAIL;
-
-  if (!emailUser || !emailPass || !ownerEmail) {
-    console.error("Missing env: EMAIL_USER, EMAIL_PASS, or OWNER_EMAIL");
-    return res.status(500).json({ success: false, message: "Email service is not configured." });
-  }
-
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: { user: emailUser, pass: emailPass },
-  });
-
-  const mailOptions = {
-    from: `"${name}" <${emailUser}>`,
-    to: ownerEmail,
-    replyTo: email,
-    subject: `[Contact Form] ${subject || "No subject"}`,
-    html: `
-      <div style="font-family: sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 600px;">
-        <h2 style="color: #2563eb; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">New Website Inquiry</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Subject:</strong> ${subject || "(none)"}</p>
-        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #2563eb;">
-          <p style="white-space: pre-wrap; margin: 0; color: #334155;">${message}</p>
-        </div>
-        <p style="font-size: 12px; color: #94a3b8; margin-top: 20px;">Sent from Dar Al Hikma Trust contact form.</p>
-      </div>
-    `,
-  };
-
-  try {
-    await transporter.sendMail(mailOptions);
-    res.status(200).json({ success: true, message: "Message sent successfully." });
-  } catch (err) {
-    console.error("Nodemailer error:", err);
-    res.status(500).json({ success: false, message: err.message || "Failed to send email." });
-  }
-});
 
 // 6️⃣ STATIC SITEMAP
 app.get("/sitemap.xml", (req, res) => {
@@ -133,13 +86,65 @@ app.use("/api/events", eventRoutes);
 app.use("/api/testimonials", testimonialRoutes);
 app.use("/api/about-us", aboutusRoutes);
 
+// 8️⃣ UPDATED: Contact Form Route (Inside /api block)
+app.post("/api/contact", async (req, res) => {
+  try {
+    const { name, email, subject, message } = req.body;
+
+    if (!name || !email || !message) {
+      return res.status(400).json({ success: false, message: "Required fields missing." });
+    }
+
+    // Force sanitization of App Password (removes spaces)
+    const emailPass = process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s/g, "") : "";
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: { 
+        user: process.env.EMAIL_USER, 
+        pass: emailPass 
+      },
+    });
+
+    const mailOptions = {
+      from: `"${name}" <${process.env.EMAIL_USER}>`,
+      to: process.env.OWNER_EMAIL,
+      replyTo: email,
+      subject: `[Dar Al Hikma Inquiry] ${subject || "New Message"}`,
+      html: `
+        <div style="font-family: sans-serif; border: 1px solid #e2e8f0; padding: 25px; border-radius: 15px; max-width: 600px;">
+          <h2 style="color: #2563eb; margin-top: 0;">New Contact Form Entry</h2>
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Subject:</strong> ${subject || "N/A"}</p>
+          <div style="background: #f8fafc; padding: 15px; border-radius: 10px; border-left: 4px solid #2563eb; margin: 20px 0;">
+            <p style="white-space: pre-wrap; color: #334155; margin: 0;">${message}</p>
+          </div>
+          <p style="font-size: 11px; color: #94a3b8; margin-bottom: 0;">Sent via daralhikma.org.in official portal.</p>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    return res.status(200).json({ success: true, message: "Enquiry sent successfully!" });
+
+  } catch (err) {
+    console.error("❌ Mail Error:", err);
+    // Return specific error to help you debug in frontend console
+    return res.status(500).json({ 
+      success: false, 
+      message: err.message.includes('Invalid login') ? "Email authentication failed." : "Internal server error." 
+    });
+  }
+});
+
 // 9️⃣ Health check
 app.get("/api/health", async (_, res) => {
   const dbHealth = await checkDatabaseHealth();
   res.status(dbHealth.healthy ? 200 : 503).json(dbHealth);
 });
 
-// 🔟 Error handler
+// 🔟 Global Error handler (Ensures CORS headers are kept even on errors)
 app.use((err, req, res, next) => {
   console.error("❌ Backend Error:", err.stack);
   res.status(err.status || 500).json({ 
