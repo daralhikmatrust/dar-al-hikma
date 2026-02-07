@@ -17,7 +17,7 @@ import {
   FiHeart
 } from 'react-icons/fi'
 import logo from '../assets/Picsart_26-01-27_19-42-26-791.png'
-import { getStoredFaculties, loadFacultiesWithFallback } from '../utils/faculties'
+import { loadFacultiesWithFallback } from '../utils/faculties'
 
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth()
@@ -34,15 +34,10 @@ export default function Navbar() {
   const mobileMenuRef = useRef(null)
   const dropdownTimeoutRef = useRef(null)
 
-  const [navCategories, setNavCategories] = useState(() => getStoredFaculties())
+  const [navCategories, setNavCategories] = useState([])
 
   useEffect(() => {
     const load = async () => {
-      const stored = getStoredFaculties()
-      if (stored.length > 0) {
-        setNavCategories(stored)
-        return
-      }
       const fromApi = await loadFacultiesWithFallback()
       setNavCategories(fromApi)
     }
@@ -50,7 +45,7 @@ export default function Navbar() {
   }, [])
 
   useEffect(() => {
-    const onUpdate = () => setNavCategories(getStoredFaculties())
+    const onUpdate = () => loadFacultiesWithFallback().then(setNavCategories)
     window.addEventListener('faculties-updated', onUpdate)
     return () => window.removeEventListener('faculties-updated', onUpdate)
   }, [])

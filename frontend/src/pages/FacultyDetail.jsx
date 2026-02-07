@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import api from '../services/api'
 import PageHeader from '../components/PageHeader'
+import { loadFacultiesWithFallback } from '../utils/faculties'
 import { FiArrowLeft, FiUsers, FiBook } from 'react-icons/fi'
 
 export default function FacultyDetail() {
@@ -20,9 +21,9 @@ export default function FacultyDetail() {
     if (!categorySlug) return
     try {
       setLoading(true)
-      const storedFaculties = JSON.parse(localStorage.getItem('faculties') || '[]')
-      const facultyData = storedFaculties.find(f => 
-        f.name.toLowerCase().replace(/\s+/g, '-') === categorySlug ||
+      const facultiesList = await loadFacultiesWithFallback()
+      const facultyData = facultiesList.find(f => 
+        f.name?.toLowerCase().replace(/\s+/g, '-') === categorySlug ||
         f.id === categorySlug ||
         (f.slug && f.slug === categorySlug)
       )

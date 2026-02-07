@@ -7,6 +7,7 @@ import { formatINR, normalizeAmount } from '../../utils/currency'
 import toast from 'react-hot-toast'
 import { FiUser, FiHeart } from 'react-icons/fi'
 import { INDIAN_STATES, getCitiesForState } from '../../utils/states-countries'
+import { loadFacultiesWithFallback } from '../../utils/faculties'
 // Razorpay script will be loaded dynamically
 
 export default function Donate() {
@@ -59,20 +60,12 @@ export default function Donate() {
     }
   }, [isAuthenticated, user])
 
-  // Load faculties from admin configuration (localStorage), fallback to defaults
+  // Load faculties from API (admin-managed categories)
   useEffect(() => {
-    try {
-      const storedFaculties = localStorage.getItem('faculties')
-      if (storedFaculties) {
-        const parsed = JSON.parse(storedFaculties)
-        const names = parsed.map((f) => f.name).filter(Boolean)
-        if (names.length) {
-          setFaculties(names)
-        }
-      }
-    } catch {
-      // ignore and keep defaults
-    }
+    loadFacultiesWithFallback().then((list) => {
+      const names = list.map((f) => f.name).filter(Boolean)
+      if (names.length) setFaculties(names)
+    })
   }, [])
 
   useEffect(() => {

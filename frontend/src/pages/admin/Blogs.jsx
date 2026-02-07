@@ -42,22 +42,21 @@ export default function AdminBlogs() {
     loadBlogs()
   }, [])
 
-  // Load Categories from LocalStorage (Faculties)
+  // Load Categories from API (Faculties)
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('faculties')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        const active = parsed
+    const load = async () => {
+      try {
+        const { data } = await api.get('/admin/content/faculties')
+        const list = data?.faculties || []
+        const active = list
           .filter((c) => (c.status || 'active') === 'active')
           .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
         setCategoryOptions(active.map((c) => ({ id: c.id, name: c.name })))
-      } else {
+      } catch {
         setCategoryOptions([])
       }
-    } catch {
-      setCategoryOptions([])
     }
+    load()
   }, [])
 
   useEffect(() => {

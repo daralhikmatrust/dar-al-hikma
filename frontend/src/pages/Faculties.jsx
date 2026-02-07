@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { FiSearch, FiMapPin, FiFilter, FiHeart } from 'react-icons/fi'
 import api from '../services/api'
-import { getStoredFaculties, loadFacultiesWithFallback } from '../utils/faculties'
+import { loadFacultiesWithFallback } from '../utils/faculties'
 import { formatINR, normalizeAmount } from '../utils/currency'
 
 export default function Faculties() {
@@ -51,11 +51,6 @@ export default function Faculties() {
     ]
 
     const load = async () => {
-      const stored = getStoredFaculties()
-      if (stored.length > 0) {
-        setCategoryItems(build(stored))
-        return
-      }
       const fromApi = await loadFacultiesWithFallback()
       setCategoryItems(build(fromApi))
     }
@@ -63,16 +58,12 @@ export default function Faculties() {
   }, [])
 
   useEffect(() => {
-    const onUpdate = () => {
-      const stored = getStoredFaculties()
-      if (stored.length > 0) {
-        setCategoryItems([
-          { id: 'all', label: 'All', faculty: '' },
-          ...stored.map((cat) => ({ id: cat.id, label: cat.name, faculty: cat.name })),
-          { id: 'completed', label: 'Successfully Completed', faculty: '', status: 'completed' }
-        ])
-      }
-    }
+    const build = (cats) => [
+      { id: 'all', label: 'All', faculty: '' },
+      ...cats.map((cat) => ({ id: cat.id, label: cat.name, faculty: cat.name })),
+      { id: 'completed', label: 'Successfully Completed', faculty: '', status: 'completed' }
+    ]
+    const onUpdate = () => loadFacultiesWithFallback().then((cats) => setCategoryItems(build(cats)))
     window.addEventListener('faculties-updated', onUpdate)
     return () => window.removeEventListener('faculties-updated', onUpdate)
   }, [])

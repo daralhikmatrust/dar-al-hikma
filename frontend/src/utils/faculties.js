@@ -1,7 +1,5 @@
 import api from '../services/api'
 
-const STORAGE_KEY = 'faculties'
-
 const DEFAULT_CATEGORY_NAMES = [
   'Education',
   'Healthcare',
@@ -15,14 +13,16 @@ const DEFAULT_CATEGORY_NAMES = [
   'Others'
 ]
 
-export function getStoredFaculties() {
+export async function fetchFacultiesFromApi() {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      const parsed = JSON.parse(stored)
-      return parsed.filter((c) => (c.status || 'active') === 'active').sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    const { data } = await api.get('/content/faculties')
+    const faculties = data?.faculties || []
+    if (Array.isArray(faculties) && faculties.length > 0) {
+      return faculties.filter((c) => (c.status || 'active') === 'active').sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
     }
-  } catch {}
+  } catch {
+    // Fallback handled below
+  }
   return []
 }
 
@@ -52,11 +52,12 @@ export async function fetchFacultiesFromProjects() {
 
 /**
  * Load faculties for display. Returns ALL categories (including those with 0 projects)
- * so they are visible on mobile and desktop. Uses: stored faculties > merged defaults + project faculties.
+ * so they are visible on mobile and desktop.
+ * Uses: API faculties > project-derived faculties > merged defaults.
  */
 export async function loadFacultiesWithFallback() {
-  const stored = getStoredFaculties()
-  if (stored.length > 0) return stored
+  const fromApi = await fetchFacultiesFromApi()
+  if (fromApi.length > 0) return fromApi
 
   const fromProjects = await fetchFacultiesFromProjects()
   const seen = new Set(fromProjects.map((c) => c.name.toLowerCase()))

@@ -7,7 +7,7 @@ import {
 } from 'react-icons/fi'
 import api from '../services/api'
 import { useEffect, useState } from 'react'
-import { getStoredFaculties, loadFacultiesWithFallback } from '../utils/faculties'
+import { loadFacultiesWithFallback } from '../utils/faculties'
 import { formatINR, normalizeAmount } from '../utils/currency'
 
 export default function Home() {
@@ -300,16 +300,7 @@ function SlideImage({ url, linkUrl, active, title, onSlideClick }) {
 function CategoriesSection() {
   const [categories, setCategories] = useState([])
   useEffect(() => {
-    const load = async () => {
-      const stored = getStoredFaculties()
-      if (stored.length > 0) {
-        setCategories(stored)
-        return
-      }
-      const fromApi = await loadFacultiesWithFallback()
-      setCategories(fromApi)
-    }
-    load()
+    loadFacultiesWithFallback().then(setCategories)
   }, [])
 
   if (categories.length === 0) return null

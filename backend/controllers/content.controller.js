@@ -47,6 +47,16 @@ async function upsertContentRow(key, data) {
   return rows?.[0] || null;
 }
 
+const DEFAULT_FACULTIES = [
+  { id: 'education', name: 'Education', description: '', slug: 'education', status: 'active', sortOrder: 0 },
+  { id: 'healthcare', name: 'Healthcare', description: '', slug: 'healthcare', status: 'active', sortOrder: 1 },
+  { id: 'livelihood-support', name: 'Livelihood Support', description: '', slug: 'livelihood-support', status: 'active', sortOrder: 2 },
+  { id: 'relief-fund', name: 'Relief Fund', description: '', slug: 'relief-fund', status: 'active', sortOrder: 3 },
+  { id: 'orphan-support', name: 'Orphan Support', description: '', slug: 'orphan-support', status: 'active', sortOrder: 4 },
+  { id: 'nikah', name: 'Nikah', description: '', slug: 'nikah', status: 'active', sortOrder: 5 },
+  { id: 'others', name: 'Others', description: '', slug: 'others', status: 'active', sortOrder: 6 }
+];
+
 const DEFAULT_ASSETS = {
   donationQrUrl: '',
   homeSlider: [], // [{ url, title, linkUrl? }]
@@ -115,6 +125,24 @@ export const getPublicContactContent = async (req, res, next) => {
   }
 };
 
+export const getPublicFaculties = async (req, res, next) => {
+  try {
+    let faculties = DEFAULT_FACULTIES;
+    try {
+      const row = await getContentRow('faculties');
+      if (row?.data) {
+        const parsed = typeof row.data === 'string' ? JSON.parse(row.data) : row.data;
+        faculties = Array.isArray(parsed) ? parsed : DEFAULT_FACULTIES;
+      }
+    } catch (e) {
+      if (e.code !== '42P01') throw e;
+    }
+    res.json({ success: true, faculties });
+  } catch (e) {
+    next(e);
+  }
+};
+
 export const getPublicAssets = async (req, res, next) => {
   try {
     let assets = DEFAULT_ASSETS;
@@ -164,6 +192,35 @@ export const updateContactContent = async (req, res, next) => {
   try {
     const row = await upsertContentRow('contact', req.body || {});
     res.json({ success: true, contact: row?.data || req.body });
+  } catch (e) {
+    next(e);
+  }
+};
+
+export const updateFacultiesContent = async (req, res, next) => {
+  try {
+    const faculties = Array.isArray(req.body) ? req.body : (req.body?.faculties || []);
+    const row = await upsertContentRow('faculties', faculties);
+    const data = row?.data;
+    res.json({ success: true, faculties: Array.isArray(data) ? data : faculties });
+  } catch (e) {
+    next(e);
+  }
+};
+
+export const getAdminFaculties = async (req, res, next) => {
+  try {
+    let faculties = DEFAULT_FACULTIES;
+    try {
+      const row = await getContentRow('faculties');
+      if (row?.data) {
+        const parsed = typeof row.data === 'string' ? JSON.parse(row.data) : row.data;
+        faculties = Array.isArray(parsed) ? parsed : DEFAULT_FACULTIES;
+      }
+    } catch (e) {
+      if (e.code !== '42P01') throw e;
+    }
+    res.json({ success: true, faculties });
   } catch (e) {
     next(e);
   }

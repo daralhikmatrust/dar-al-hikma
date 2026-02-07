@@ -87,38 +87,63 @@ app.use("/api/testimonials", testimonialRoutes);
 app.use("/api/about-us", aboutusRoutes);
 
 // 8️⃣ UPDATED: Contact Form Route (Inside /api block)
+function escapeHtml(str) {
+  if (str == null || typeof str !== "string") return "";
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 app.post("/api/contact", async (req, res) => {
   try {
-    const { name, email, subject, message } = req.body;
+    const emailUser = process.env.EMAIL_USER || "";
+    const ownerEmail = process.env.OWNER_EMAIL || "";
+    const emailPass = (process.env.EMAIL_PASS || "").replace(/\s/g, "");
 
-    if (!name || !email || !message) {
-      return res.status(400).json({ success: false, message: "Required fields missing." });
+    if (!emailUser || !ownerEmail || !emailPass) {
+      console.warn("⚠️ Contact: EMAIL_USER, OWNER_EMAIL, or EMAIL_PASS not configured in env.");
+      return res.status(503).json({
+        success: false,
+        message: "Contact form is temporarily unavailable. Please try again later or email us directly.",
+      });
     }
 
-    // Force sanitization of App Password (removes spaces)
-    const emailPass = process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s/g, "") : "";
+    const { name, email, subject, message } = req.body || {};
+    const sName = String(name || "").trim();
+    const sEmail = String(email || "").trim();
+    const sSubject = String(subject || "").trim();
+    const sMessage = String(message || "").trim();
+
+    if (!sName || !sEmail || !sMessage) {
+      return res.status(400).json({ success: false, message: "Name, email and message are required." });
+    }
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
-      auth: { 
-        user: process.env.EMAIL_USER, 
-        pass: emailPass 
-      },
+      auth: { user: emailUser, pass: emailPass },
     });
 
+    const n = escapeHtml(sName);
+    const e = escapeHtml(sEmail);
+    const subj = escapeHtml(sSubject || "New Message");
+    const msg = escapeHtml(sMessage).replace(/\n/g, "<br>");
+
     const mailOptions = {
-      from: `"${name}" <${process.env.EMAIL_USER}>`,
-      to: process.env.OWNER_EMAIL,
-      replyTo: email,
-      subject: `[Dar Al Hikma Inquiry] ${subject || "New Message"}`,
+      from: `"${n}" <${emailUser}>`,
+      to: ownerEmail,
+      replyTo: sEmail,
+      subject: `[Dar Al Hikma Inquiry] ${sSubject || "New Message"}`,
       html: `
         <div style="font-family: sans-serif; border: 1px solid #e2e8f0; padding: 25px; border-radius: 15px; max-width: 600px;">
           <h2 style="color: #2563eb; margin-top: 0;">New Contact Form Entry</h2>
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Subject:</strong> ${subject || "N/A"}</p>
+          <p><strong>Name:</strong> ${n}</p>
+          <p><strong>Email:</strong> ${e}</p>
+          <p><strong>Subject:</strong> ${subj}</p>
           <div style="background: #f8fafc; padding: 15px; border-radius: 10px; border-left: 4px solid #2563eb; margin: 20px 0;">
-            <p style="white-space: pre-wrap; color: #334155; margin: 0;">${message}</p>
+            <p style="white-space: pre-wrap; color: #334155; margin: 0;">${msg}</p>
           </div>
           <p style="font-size: 11px; color: #94a3b8; margin-bottom: 0;">Sent via daralhikma.org.in official portal.</p>
         </div>
@@ -127,14 +152,13 @@ app.post("/api/contact", async (req, res) => {
 
     await transporter.sendMail(mailOptions);
     return res.status(200).json({ success: true, message: "Enquiry sent successfully!" });
-
   } catch (err) {
     console.error("❌ Mail Error:", err);
-    // Return specific error to help you debug in frontend console
-    return res.status(500).json({ 
-      success: false, 
-      message: err.message.includes('Invalid login') ? "Email authentication failed." : "Internal server error." 
-    });
+    const msg =
+      err.message && (err.message.includes("Invalid login") || err.message.includes("authentication"))
+        ? "Email service configuration error. Please contact support."
+        : "Failed to send message. Please try again later.";
+    return res.status(500).json({ success: false, message: msg });
   }
 });
 

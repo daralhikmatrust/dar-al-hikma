@@ -24,7 +24,9 @@ import {
   uploadEventsHeroImage,
   updateAboutContent,
   updateAssets,
-  updateContactContent
+  updateContactContent,
+  updateFacultiesContent,
+  getAdminFaculties
 } from '../controllers/content.controller.js';
 import multer from 'multer';
 const upload = multer({
@@ -53,6 +55,8 @@ router.get('/donations/export', exportDonations);
 router.get('/content', getAdminContent);
 router.put('/content/about', updateAboutContent);
 router.put('/content/contact', updateContactContent);
+router.get('/content/faculties', getAdminFaculties);
+router.put('/content/faculties', updateFacultiesContent);
 router.get('/content/assets', getAdminAssets);
 router.put('/content/assets', updateAssets);
 router.post('/content/assets/qr', upload.single('file'), uploadDonationQrImage);

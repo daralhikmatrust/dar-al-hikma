@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import toast from 'react-hot-toast'
 import { FiPlus, FiEdit, FiTrash2, FiBook, FiHeart, FiHome, FiUsers, FiX, FiSearch } from 'react-icons/fi'
+import api from '../../services/api'
 
 const DEFAULT_CATEGORIES = [
   'Education',
@@ -58,15 +59,14 @@ export default function AdminFaculties() {
     loadCategories()
   }, [])
 
-  const loadCategories = () => {
+  const loadCategories = async () => {
     try {
-      const stored = localStorage.getItem('faculties')
-      let data = []
-      if (stored) {
-        data = JSON.parse(stored)
+      const { data } = await api.get('/admin/content/faculties')
+      const list = data?.faculties || []
+      if (list.length > 0) {
+        setCategories(list)
       } else {
-        // Seed defaults matching user-facing Category menu
-        data = DEFAULT_CATEGORIES.map((name, index) => ({
+        const seed = DEFAULT_CATEGORIES.map((name, index) => ({
           id: name.toLowerCase().replace(/\s+/g, '-'),
           name,
           description: `${name} related projects and causes.`,
@@ -75,20 +75,35 @@ export default function AdminFaculties() {
           status: 'active',
           sortOrder: index
         }))
-        localStorage.setItem('faculties', JSON.stringify(data))
+        setCategories(seed)
+        await api.put('/admin/content/faculties', seed)
       }
-      setCategories(data)
     } catch {
-      toast.error('Failed to load categories')
+      const seed = DEFAULT_CATEGORIES.map((name, index) => ({
+        id: name.toLowerCase().replace(/\s+/g, '-'),
+        name,
+        description: `${name} related projects and causes.`,
+        icon: name,
+        color: COLOR_CLASSES[index % COLOR_CLASSES.length],
+        status: 'active',
+        sortOrder: index
+      }))
+      setCategories(seed)
+      toast.error('Failed to load from server. Showing defaults.')
     } finally {
       setLoading(false)
     }
   }
 
-  const saveCategories = (next) => {
-    localStorage.setItem('faculties', JSON.stringify(next))
-    setCategories(next)
-    window.dispatchEvent(new CustomEvent('faculties-updated'))
+  const saveCategories = async (next) => {
+    try {
+      await api.put('/admin/content/faculties', next)
+      setCategories(next)
+      window.dispatchEvent(new CustomEvent('faculties-updated'))
+      toast.success('Categories saved and synced across the site.')
+    } catch {
+      toast.error('Failed to save categories. Please try again.')
+    }
   }
 
   const handleOpenNew = () => {
@@ -119,7 +134,6 @@ export default function AdminFaculties() {
     if (!window.confirm('Are you sure you want to delete this category?')) return
     const next = categories.filter((c) => c.id !== id)
     saveCategories(next)
-    toast.success('Category deleted')
   }
 
   const handleToggleStatus = (id) => {
@@ -151,7 +165,6 @@ export default function AdminFaculties() {
           : c
       )
       saveCategories(next)
-      toast.success('Category updated')
     } else {
       const color = COLOR_CLASSES[(categories.length || 0) % COLOR_CLASSES.length]
       const Icon = CATEGORY_ICONS[formData.name] ? formData.name : 'Education'
@@ -167,7 +180,6 @@ export default function AdminFaculties() {
       }
       const next = [...categories, newCat]
       saveCategories(next)
-      toast.success('Category created')
     }
 
     setShowModal(false)

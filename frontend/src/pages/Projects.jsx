@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import api from '../services/api'
 import { formatINR, normalizeAmount } from '../utils/currency'
+import { loadFacultiesWithFallback } from '../utils/faculties'
 import { FiSearch, FiArrowRight, FiTarget, FiFilter, FiActivity, FiLayers, FiCalendar, FiMapPin } from 'react-icons/fi'
 
 export default function Projects() {
@@ -26,14 +27,10 @@ export default function Projects() {
   }, [filters])
 
   useEffect(() => {
-    try {
-      const storedFaculties = localStorage.getItem('faculties')
-      if (storedFaculties) {
-        const parsed = JSON.parse(storedFaculties)
-        const names = parsed.map((f) => f.name).filter(Boolean)
-        if (names.length) setFacultyOptions(names)
-      }
-    } catch { /* keep defaults */ }
+    loadFacultiesWithFallback().then((faculties) => {
+      const names = faculties.map((f) => f.name).filter(Boolean)
+      if (names.length) setFacultyOptions(names)
+    })
   }, [])
 
   const fetchProjects = async () => {

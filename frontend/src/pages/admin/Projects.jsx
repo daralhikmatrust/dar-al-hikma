@@ -145,14 +145,14 @@ export default function AdminProjects() {
     { id: 'others', name: 'Others' }
   ]
 
-  const loadCategories = () => {
+  const loadCategories = async () => {
     try {
-      const stored = localStorage.getItem('faculties')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        const active = parsed
-          .filter((c) => (c.status || 'active') === 'active')
-          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+      const { data } = await api.get('/admin/content/faculties')
+      const list = data?.faculties || []
+      const active = list
+        .filter((c) => (c.status || 'active') === 'active')
+        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+      if (active.length) {
         setCategoryOptions(active.map((c) => ({ id: c.id || c.name?.toLowerCase()?.replace(/\s+/g, '-'), name: c.name })))
       } else {
         setCategoryOptions(DEFAULT_CATEGORIES)
@@ -168,12 +168,8 @@ export default function AdminProjects() {
 
   useEffect(() => {
     const onUpdate = () => loadCategories()
-    window.addEventListener('storage', onUpdate)
     window.addEventListener('faculties-updated', onUpdate)
-    return () => {
-      window.removeEventListener('storage', onUpdate)
-      window.removeEventListener('faculties-updated', onUpdate)
-    }
+    return () => window.removeEventListener('faculties-updated', onUpdate)
   }, [])
 
   const handleSubmit = async (e) => {
