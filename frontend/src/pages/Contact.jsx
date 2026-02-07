@@ -2,7 +2,7 @@ import { Helmet } from "react-helmet-async"
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import PageHeader from '../components/PageHeader'
-import { FiMail, FiPhone, FiMapPin, FiSend, FiClock, FiMessageSquare } from 'react-icons/fi'
+import { FiMail, FiPhone, FiMapPin, FiSend, FiClock } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import api from '../services/api'
 
@@ -21,21 +21,32 @@ export default function Contact() {
     fetchContent()
   }, [])
 
-  const addressText = contactContent?.address || 'Hyderabad, Telangana, India'
-  const phone1 = contactContent?.phone1 || '+91 1234567890'
-  const email1 = contactContent?.email1 || 'info@daralhikma.org'
+  // Updated defaults for Dar Al Hikma
+  const addressText = contactContent?.address || 'Bhagalpur, Bihar, India'
+  const phone1 = contactContent?.phone1 || '+91 98765 43210'
+  const email1 = contactContent?.email1 || 'info@daralhikma.org.in'
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (submitting) return // Prevent double-clicks
+
     setSubmitting(true)
+    const toastId = toast.loading('Sending your enquiry...')
+
     try {
+      // Logic Fix: Explicitly handle data response
       const { data } = await api.post('/contact', formData)
-      toast.success(data?.message || 'Message sent successfully!')
-      setFormData({ name: '', email: '', subject: '', message: '' })
+      
+      if (data.success) {
+        toast.success(data.message || 'Message sent successfully!', { id: toastId })
+        setFormData({ name: '', email: '', subject: '', message: '' })
+      } else {
+        throw new Error(data.message || 'Something went wrong')
+      }
     } catch (error) {
-      console.error('Contact form error – Full Error:', error.response || error)
-      const msg = error?.response?.data?.message || error?.message || 'Failed to send message.'
-      toast.error(msg)
+      console.error('Contact form error:', error.response || error)
+      const errorMsg = error?.response?.data?.message || 'Failed to send message. Please try again later.'
+      toast.error(errorMsg, { id: toastId })
     } finally {
       setSubmitting(false)
     }
@@ -44,11 +55,11 @@ export default function Contact() {
   return (
     <div className="bg-[#f8fafc] min-h-screen font-sans selection:bg-primary-100 selection:text-primary-900">
       <Helmet>
-        <title>Contact Us | Get in Touch - Dar Al Hikma Trust</title>
-        <meta name="description" content="Have questions? Contact Dar Al Hikma Trust for inquiries regarding donations, projects, or how you can get involved." />
+        <title>Contact Us | Dar Al Hikma Trust</title>
+        <meta name="description" content="Reach out to Dar Al Hikma Trust for inquiries regarding donations or missions." />
         <link rel="canonical" href="https://daralhikma.org.in/contact" />
       </Helmet>
-      {/* Abstract Background Decoration */}
+      
       <div className="absolute top-0 right-0 w-1/2 h-[600px] bg-gradient-to-bl from-primary-50/50 to-transparent -z-10" />
       
       <section className="pt-16 pb-12">
@@ -60,7 +71,7 @@ export default function Contact() {
           >
             <PageHeader
               title="Get in Touch"
-              description="Have a question or want to get involved? Our team is here to help and guide you."
+              description="Have a question or want to support our missions? We're here to help."
             />
           </motion.div>
         </div>
@@ -70,7 +81,6 @@ export default function Contact() {
         <div className="container-custom px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-12 gap-12 items-stretch">
             
-            {/* Left: Refined Info Sidebar */}
             <motion.div 
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
@@ -80,18 +90,18 @@ export default function Contact() {
               <div className="space-y-10">
                 <div>
                   <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-6">
-                    Let's discuss how we can <span className="text-primary-600">work together.</span>
+                    Let's discuss how we can <span className="text-primary-600">drive impact.</span>
                   </h2>
                   <p className="text-lg text-slate-600 leading-relaxed max-w-md">
-                    We aim to respond to all inquiries within 24 hours. Reach out via form or through our direct channels.
+                    Our team aims to respond to all inquiries within 24 hours. Connect with us through the form or our official channels.
                   </p>
                 </div>
 
                 <div className="grid gap-6">
                   {[
-                    { icon: <FiMapPin />, title: 'Our Office', detail: addressText },
+                    { icon: <FiMapPin />, title: 'Headquarters', detail: addressText },
                     { icon: <FiPhone />, title: 'Direct Line', detail: phone1 },
-                    { icon: <FiMail />, title: 'Email Support', detail: email1 },
+                    { icon: <FiMail />, title: 'Official Email', detail: email1 },
                   ].map((item, i) => (
                     <div key={i} className="flex items-start gap-5 p-2 group">
                       <div className="w-12 h-12 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-primary-600 text-xl group-hover:bg-primary-600 group-hover:text-white transition-all duration-300">
@@ -106,26 +116,24 @@ export default function Contact() {
                 </div>
               </div>
 
-              {/* Minimalist Clock Section */}
               <div className="mt-12 p-8 rounded-3xl bg-slate-900 text-white relative overflow-hidden shadow-2xl">
                 <FiClock className="absolute -right-4 -bottom-4 text-9xl text-white/5 rotate-12" />
                 <h4 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <FiClock className="text-primary-400" /> Availability
+                  <FiClock className="text-primary-400" /> Operational Hours
                 </h4>
                 <div className="space-y-3 text-sm text-slate-300">
                   <p className="flex justify-between border-b border-slate-800 pb-2">
-                    <span>Mon — Fri</span>
+                    <span>Mon — Sat</span>
                     <span className="text-white font-mono">09:00 - 18:00</span>
                   </p>
                   <p className="flex justify-between">
-                    <span>Weekends</span>
-                    <span className="text-primary-400 font-bold uppercase tracking-tighter">Emergency Only</span>
+                    <span>Sunday</span>
+                    <span className="text-primary-400 font-bold uppercase tracking-tighter italic">By Appointment</span>
                   </p>
                 </div>
               </div>
             </motion.div>
 
-            {/* Right: The "Glass" Contact Form */}
             <motion.div 
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
@@ -151,7 +159,7 @@ export default function Contact() {
                       <input
                         type="email"
                         className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-transparent focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 outline-none transition-all placeholder:text-slate-400"
-                        placeholder="name@company.com"
+                        placeholder="name@email.com"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         required
@@ -164,7 +172,7 @@ export default function Contact() {
                     <input
                       type="text"
                       className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-transparent focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 outline-none transition-all placeholder:text-slate-400"
-                      placeholder="How can we help?"
+                      placeholder="Mission Inquiry / Volunteer / Feedback"
                       value={formData.subject}
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                       required
@@ -176,7 +184,7 @@ export default function Contact() {
                     <textarea
                       rows="5"
                       className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-transparent focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 outline-none transition-all resize-none placeholder:text-slate-400"
-                      placeholder="Write your message here..."
+                      placeholder="Tell us more about how we can help..."
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                       required
