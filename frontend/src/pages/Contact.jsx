@@ -29,11 +29,13 @@ export default function Contact() {
     e.preventDefault()
     setSubmitting(true)
     try {
-      await api.post('/contact', formData)
-      toast.success('Message sent successfully!')
+      const { data } = await api.post('/contact', formData)
+      toast.success(data?.message || 'Message sent successfully!')
       setFormData({ name: '', email: '', subject: '', message: '' })
     } catch (error) {
-      toast.error('Failed to send message.')
+      console.error('Contact form error – Full Error:', error.response || error)
+      const msg = error?.response?.data?.message || error?.message || 'Failed to send message.'
+      toast.error(msg)
     } finally {
       setSubmitting(false)
     }

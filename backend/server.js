@@ -55,6 +55,56 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
+// 5b. Contact Form Route (explicit, before other API routes)
+app.post("/api/contact", async (req, res) => {
+  const { name, email, subject, message } = req.body;
+
+  if (!name || !email || !message) {
+    return res.status(400).json({ success: false, message: "Name, email, and message are required." });
+  }
+
+  const emailUser = process.env.EMAIL_USER;
+  const emailPass = process.env.EMAIL_PASS;
+  const ownerEmail = process.env.OWNER_EMAIL;
+
+  if (!emailUser || !emailPass || !ownerEmail) {
+    console.error("Missing env: EMAIL_USER, EMAIL_PASS, or OWNER_EMAIL");
+    return res.status(500).json({ success: false, message: "Email service is not configured." });
+  }
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: { user: emailUser, pass: emailPass },
+  });
+
+  const mailOptions = {
+    from: `"${name}" <${emailUser}>`,
+    to: ownerEmail,
+    replyTo: email,
+    subject: `[Contact Form] ${subject || "No subject"}`,
+    html: `
+      <div style="font-family: sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 600px;">
+        <h2 style="color: #2563eb; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">New Website Inquiry</h2>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Subject:</strong> ${subject || "(none)"}</p>
+        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #2563eb;">
+          <p style="white-space: pre-wrap; margin: 0; color: #334155;">${message}</p>
+        </div>
+        <p style="font-size: 12px; color: #94a3b8; margin-top: 20px;">Sent from Dar Al Hikma Trust contact form.</p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    res.status(200).json({ success: true, message: "Message sent successfully." });
+  } catch (err) {
+    console.error("Nodemailer error:", err);
+    res.status(500).json({ success: false, message: err.message || "Failed to send email." });
+  }
+});
+
 // 6️⃣ STATIC SITEMAP
 app.get("/sitemap.xml", (req, res) => {
   const BASE_URL = "https://daralhikma.org.in";
@@ -82,51 +132,6 @@ app.use("/api/blogs", blogRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/testimonials", testimonialRoutes);
 app.use("/api/about-us", aboutusRoutes);
-
-// 8️⃣ Contact Form Route (The missing part that caused 404)
-app.post("/api/contact", async (req, res) => {
-  const { name, email, subject, message } = req.body;
-
-  if (!name || !email || !message) {
-    return res.status(400).json({ success: false, message: "Required fields missing" });
-  }
-
-  // Setup Transporter
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS, // 16-digit App Password without spaces
-    },
-  });
-
-  const mailOptions = {
-    from: `"${name}" <${process.env.EMAIL_USER}>`,
-    to: process.env.OWNER_EMAIL,
-    replyTo: email,
-    subject: `[Contact Form] ${subject}`,
-    html: `
-      <div style="font-family: sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 600px;">
-        <h2 style="color: #2563eb; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">New Website Inquiry</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Subject:</strong> ${subject}</p>
-        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #2563eb;">
-          <p style="white-space: pre-wrap; margin: 0; color: #334155;">${message}</p>
-        </div>
-        <p style="font-size: 12px; color: #94a3b8; margin-top: 20px;">This email was sent from the Dar Al Hikma Trust contact form.</p>
-      </div>
-    `,
-  };
-
-  try {
-    await transporter.sendMail(mailOptions);
-    res.status(200).json({ success: true, message: "Message sent successfully" });
-  } catch (error) {
-    console.error("❌ Nodemailer Error:", error);
-    res.status(500).json({ success: false, message: "Failed to send email" });
-  }
-});
 
 // 9️⃣ Health check
 app.get("/api/health", async (_, res) => {
