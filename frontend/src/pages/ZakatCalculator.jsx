@@ -1,10 +1,4 @@
-import { Helmet } from "react-helmet-async";
-<Helmet>
-  <title>Zakat Calculator Online | Calculate Your Zakat Accurately</title>
-  <meta name="description" content="Use our easy-to-use Zakat Calculator to calculate your Zakat on gold, silver, cash, and assets according to Islamic principles." />
-  <link rel="canonical" href="https://daralhikma.org.in/zakat-calculator" />
-</Helmet>
-
+import { Helmet } from "react-helmet-async"
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
@@ -522,7 +516,11 @@ export default function ZakatCalculator() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      
+      <Helmet>
+        <title>Zakat Calculator Online | Calculate Your Zakat Accurately</title>
+        <meta name="description" content="Use our easy-to-use Zakat Calculator to calculate your Zakat on gold, silver, cash, and assets according to Islamic principles." />
+        <link rel="canonical" href="https://daralhikma.org.in/zakat-calculator" />
+      </Helmet>
       {/* --- PROFESSIONAL HERO SECTION --- */}
       {/* Changed: 'pb-8' -> 'pb-4' to reduce space at the bottom of the header */}
       <section className="bg-white pt-24 pb-0 border-b border-slate-200 relative overflow-hidden">

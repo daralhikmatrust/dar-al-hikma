@@ -1,4 +1,5 @@
 import Project from '../models/Project.model.js';
+import { normalizeAmount } from '../utils/currency.js';
 import crypto from 'crypto';
 import {
   getSupabaseAdmin,
@@ -141,11 +142,14 @@ export const createProject = async (req, res, next) => {
       }
     }
 
+    // Normalize amounts to avoid floating-point precision errors (e.g. 5000 -> 5000, not 4889.90)
+    const normTarget = targetAmount ? normalizeAmount(targetAmount) : null;
+    const normCurrent = 0;
+
     // Calculate progress if target amount is provided
     let progress = 0;
-    const currentAmount = 0;
-    if (targetAmount && parseFloat(targetAmount) > 0) {
-      progress = Math.min(100, Math.round((currentAmount / parseFloat(targetAmount)) * 100));
+    if (normTarget && normTarget > 0) {
+      progress = Math.min(100, Math.round((normCurrent / normTarget) * 100));
     }
 
     // Prepare images array - add photo if uploaded
@@ -159,8 +163,8 @@ export const createProject = async (req, res, next) => {
       faculty,
       status: status || 'ongoing',
       location: parsedLocation,
-      targetAmount: targetAmount ? parseFloat(targetAmount) : null,
-      currentAmount: currentAmount,
+      targetAmount: normTarget,
+      currentAmount: normCurrent,
       progress: progress,
       isFeatured: isFeaturedBool,
       images: images,
@@ -220,8 +224,8 @@ export const updateProject = async (req, res, next) => {
         updates.location = typeof location === 'string' ? {} : location;
       }
     }
-    if (targetAmount !== undefined) updates.targetAmount = parseFloat(targetAmount);
-    if (currentAmount !== undefined) updates.currentAmount = parseFloat(currentAmount);
+    if (targetAmount !== undefined) updates.targetAmount = normalizeAmount(targetAmount);
+    if (currentAmount !== undefined) updates.currentAmount = normalizeAmount(currentAmount);
     if (progress !== undefined) updates.progress = parseInt(progress);
     if (isFeatured !== undefined) {
       // Parse isFeatured if it's a string
@@ -295,8 +299,8 @@ export const updateProject = async (req, res, next) => {
     if (updates.progress === undefined && (updates.targetAmount !== undefined || updates.currentAmount !== undefined)) {
       const existing = await Project.findById(req.params.id);
       if (existing) {
-        const nextTarget = updates.targetAmount !== undefined ? parseFloat(updates.targetAmount || 0) : parseFloat(existing.targetAmount || 0);
-        const nextCurrent = updates.currentAmount !== undefined ? parseFloat(updates.currentAmount || 0) : parseFloat(existing.currentAmount || 0);
+        const nextTarget = updates.targetAmount !== undefined ? normalizeAmount(updates.targetAmount || 0) : normalizeAmount(existing.targetAmount || 0);
+        const nextCurrent = updates.currentAmount !== undefined ? normalizeAmount(updates.currentAmount || 0) : normalizeAmount(existing.currentAmount || 0);
         if (nextTarget > 0) {
           updates.progress = Math.min(100, Math.max(0, Math.round((nextCurrent / nextTarget) * 100)));
         }

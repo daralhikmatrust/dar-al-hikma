@@ -1,10 +1,4 @@
-import { Helmet } from "react-helmet-async";
-<Helmet>
-  <title>Contact Us | Get in Touch - Dar Al Hikma Trust</title>
-  <meta name="description" content="Have questions? Contact Dar Al Hikma Trust for inquiries regarding donations, projects, or how you can get involved." />
-  <link rel="canonical" href="https://daralhikma.org.in/contact" />
-</Helmet>
-
+import { Helmet } from "react-helmet-async"
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import PageHeader from '../components/PageHeader'
@@ -47,6 +41,11 @@ export default function Contact() {
 
   return (
     <div className="bg-[#f8fafc] min-h-screen font-sans selection:bg-primary-100 selection:text-primary-900">
+      <Helmet>
+        <title>Contact Us | Get in Touch - Dar Al Hikma Trust</title>
+        <meta name="description" content="Have questions? Contact Dar Al Hikma Trust for inquiries regarding donations, projects, or how you can get involved." />
+        <link rel="canonical" href="https://daralhikma.org.in/contact" />
+      </Helmet>
       {/* Abstract Background Decoration */}
       <div className="absolute top-0 right-0 w-1/2 h-[600px] bg-gradient-to-bl from-primary-50/50 to-transparent -z-10" />
       

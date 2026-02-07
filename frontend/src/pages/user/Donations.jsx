@@ -89,17 +89,38 @@ export default function Donations() {
       const response = await api.get(`/donations/${donationId}/receipt`, {
         responseType: 'blob'
       })
-      const url = window.URL.createObjectURL(new Blob([response.data]))
-      const iframe = document.createElement('iframe')
-      iframe.style.display = 'none'
-      iframe.src = url
-      document.body.appendChild(iframe)
-      iframe.onload = () => {
-        iframe.contentWindow.print()
-        setTimeout(() => {
-          document.body.removeChild(iframe)
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+      const printWindow = window.open(url, '_blank', 'noopener,noreferrer')
+      if (printWindow) {
+        const doPrint = () => {
+          try {
+            printWindow.focus()
+            printWindow.print()
+          } catch {
+            printWindow.close()
+          }
           window.URL.revokeObjectURL(url)
-        }, 1000)
+        }
+        printWindow.onload = () => setTimeout(doPrint, 600)
+        // Fallback: PDF viewers may not fire onload
+        setTimeout(doPrint, 2000)
+        toast.success('Opening print dialog...')
+      } else {
+        const iframe = document.createElement('iframe')
+        iframe.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;border:none;z-index:9999'
+        iframe.src = url
+        document.body.appendChild(iframe)
+        setTimeout(() => {
+          try {
+            iframe.contentWindow?.focus()
+            iframe.contentWindow?.print()
+          } catch { /* ignore */ }
+          setTimeout(() => {
+            document.body.removeChild(iframe)
+            window.URL.revokeObjectURL(url)
+          }, 1500)
+        }, 800)
+        toast.success('Opening print dialog...')
       }
     } catch (error) {
       console.error('Failed to print receipt:', error)

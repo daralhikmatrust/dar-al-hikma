@@ -44,17 +44,20 @@ export const formatPaymentTime = (donation, options = {}) => {
     hour12 = true
   } = options;
   
+  const istOptions = { timeZone: 'Asia/Kolkata' };
   return {
     date: paymentTime.toLocaleDateString('en-IN', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
+      ...istOptions
     }),
     time: paymentTime.toLocaleTimeString('en-IN', {
       hour: '2-digit',
       minute: '2-digit',
       second: includeSeconds ? '2-digit' : undefined,
-      hour12: hour12
+      hour12: hour12,
+      ...istOptions
     }),
     dateTime: paymentTime.toLocaleString('en-IN', {
       year: 'numeric',
@@ -63,7 +66,8 @@ export const formatPaymentTime = (donation, options = {}) => {
       hour: '2-digit',
       minute: '2-digit',
       second: includeSeconds ? '2-digit' : undefined,
-      hour12: hour12
+      hour12: hour12,
+      ...istOptions
     })
   };
 };

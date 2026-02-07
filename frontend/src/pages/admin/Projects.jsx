@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import api from '../../services/api'
 import { formatINR, normalizeAmount } from '../../utils/currency'
 import toast from 'react-hot-toast'
-import { FiPlus, FiEdit, FiTrash2, FiSearch, FiFilter, FiX, FiUpload } from 'react-icons/fi'
+import { FiPlus, FiEdit, FiTrash2, FiSearch, FiFilter, FiX, FiUpload, FiExternalLink, FiTarget } from 'react-icons/fi'
 import { INDIAN_STATES, COUNTRIES, getCitiesForState } from '../../utils/states-countries'
 
 export default function AdminProjects() {
@@ -33,7 +33,7 @@ export default function AdminProjects() {
     photo: null
   })
   const [availableCities, setAvailableCities] = useState([])
-  const [photoPreview, setPhotoPreview] = useState(null)
+  const [photoPreviews, setPhotoPreviews] = useState([])
 
   useEffect(() => {
     fetchProjects()
@@ -93,19 +93,40 @@ export default function AdminProjects() {
   }
 
   const handlePhotoChange = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('Photo size must be less than 5MB')
-        return
+    const files = Array.from(e.target.files || [])
+    const valid = files.filter((f) => f.size <= 5 * 1024 * 1024)
+    if (valid.length < files.length) toast.error('Some files exceed 5MB limit')
+    if (valid.length === 0) return
+    setFormData((prev) => ({
+      ...prev,
+      photo: valid[0],
+      extraPhotos: [...(prev.extraPhotos || []), ...valid.slice(1)]
+    }))
+    const loadAll = valid.map((file) =>
+      new Promise((resolve) => {
+        const r = new FileReader()
+        r.onloadend = () => resolve({ file, dataUrl: r.result })
+        r.readAsDataURL(file)
+      })
+    )
+    Promise.all(loadAll).then((results) => {
+      setPhotoPreviews((prev) => [...prev, ...results])
+    })
+    e.target.value = ''
+  }
+
+  const removePhotoPreview = (idx) => {
+    const existingCount = (editingProject?.images || []).length
+    if (idx < existingCount) return
+    const extraIdx = idx - existingCount
+    setPhotoPreviews((prev) => prev.filter((_, i) => i !== idx))
+    setFormData((prev) => {
+      const extras = prev.extraPhotos || []
+      if (extraIdx === 0) {
+        return { ...prev, photo: extras[0] || null, extraPhotos: extras.slice(1) }
       }
-      setFormData({ ...formData, photo: file })
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result)
-      }
-      reader.readAsDataURL(file)
-    }
+      return { ...prev, extraPhotos: extras.filter((_, i) => i !== extraIdx - 1) }
+    })
   }
 
   const [submitting, setSubmitting] = useState(false)
@@ -173,6 +194,12 @@ export default function AdminProjects() {
           if (formData.photo) {
             submitData.append('photo', formData.photo)
           }
+        } else if (key === 'targetAmount') {
+          // Normalize to avoid rounding bugs (e.g. 5000 stays 5000, not 4889.90)
+          const val = formData.targetAmount
+          if (val !== '' && val != null) {
+            submitData.append(key, String(normalizeAmount(val)))
+          }
         } else if (key !== 'subcategory') {
           // subcategory will be sent via tags, not as a top-level field
           submitData.append(key, formData[key])
@@ -188,16 +215,36 @@ export default function AdminProjects() {
       }
       submitData.append('tags', JSON.stringify(tags))
 
+      const projectId = editingProject?._id || editingProject?.id
       if (editingProject) {
-        await api.put(`/projects/${editingProject._id || editingProject.id}`, submitData, {
+        await api.put(`/projects/${projectId}`, submitData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         })
-        toast.success('Project updated successfully')
+        const extraPhotos = formData.extraPhotos || []
+        for (let i = 0; i < extraPhotos.length; i++) {
+          const fd = new FormData()
+          fd.append('photo', extraPhotos[i])
+          await api.put(`/projects/${projectId}`, fd, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          })
+        }
+        if (extraPhotos.length) toast.success(`Project updated with ${extraPhotos.length + 1} image(s)`)
+        else toast.success('Project updated successfully')
       } else {
-        await api.post('/projects', submitData, {
+        const res = await api.post('/projects', submitData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         })
-        toast.success('Project created successfully')
+        const newId = res.data?.project?._id || res.data?.project?.id
+        const extraPhotos = formData.extraPhotos || []
+        for (let i = 0; i < extraPhotos.length; i++) {
+          const fd = new FormData()
+          fd.append('photo', extraPhotos[i])
+          await api.put(`/projects/${newId}`, fd, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          })
+        }
+        if (extraPhotos.length) toast.success(`Project created with ${extraPhotos.length + 1} image(s)`)
+        else toast.success('Project created successfully')
       }
       setShowModal(false)
       setEditingProject(null)
@@ -252,7 +299,8 @@ export default function AdminProjects() {
       },
       photo: null
     })
-    setPhotoPreview(project.images?.[0]?.url || null)
+    const imgs = (project.images || []).map((img) => (typeof img === 'string' ? { url: img } : img))
+    setPhotoPreviews(imgs.map((img) => ({ dataUrl: img?.url })))
     setShowModal(true)
   }
 
@@ -272,9 +320,10 @@ export default function AdminProjects() {
         district: '',
         country: 'India'
       },
-      photo: null
+      photo: null,
+      extraPhotos: []
     })
-    setPhotoPreview(null)
+    setPhotoPreviews([])
     setAvailableCities([])
   }
 
@@ -296,8 +345,11 @@ export default function AdminProjects() {
     <div className="mt-0">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 animate-admin-slide-in">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Project Management</h1>
-          <p className="text-slate-600">Create, edit, and manage all projects visible to users</p>
+          <div className="flex items-center gap-2 mb-2">
+            <FiTarget className="w-8 h-8 text-primary-600" />
+            <h1 className="text-3xl font-bold text-slate-900">Project Management</h1>
+          </div>
+          <p className="text-slate-600">Create, edit, and manage all projects. Changes sync with the public project detail page.</p>
         </div>
         <button
           onClick={() => {
@@ -437,16 +489,31 @@ export default function AdminProjects() {
                   </tr>
                 ) : (
                   filteredProjects.map((project, index) => {
-                    const progress = project.targetAmount > 0 
-                      ? Math.min((normalizeAmount(project.currentAmount) / normalizeAmount(project.targetAmount)) * 100, 100)
+                    const target = normalizeAmount(project.targetAmount || 0)
+                    const current = normalizeAmount(project.currentAmount || 0)
+                    const progress = target > 0
+                      ? Math.min(Math.round((current / target) * 1000) / 10, 100)
                       : (project.progress || 0)
+                    const projectUrl = `/projects/${project._id || project.id}`
                     return (
                       <tr 
                         key={project._id || project.id} 
                         className="hover:bg-slate-50 transition-all duration-200 animate-admin-slide-in"
                         style={{ animationDelay: `${0.3 + index * 0.03}s` }}
                       >
-                        <td className="py-4 px-6 font-semibold text-slate-900">{project.title}</td>
+                        <td className="py-4 px-6">
+                          <div className="flex flex-col gap-1">
+                            <span className="font-semibold text-slate-900">{project.title}</span>
+                            <a
+                              href={projectUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary-600 hover:text-primary-700 flex items-center gap-1 w-fit"
+                            >
+                              <FiExternalLink className="w-3.5 h-3.5" /> View project
+                            </a>
+                          </div>
+                        </td>
                         <td className="py-4 px-6">
                           <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold">
                             {project.faculty}
@@ -456,16 +523,23 @@ export default function AdminProjects() {
                           {getStatusBadge(project.status)}
                         </td>
                         <td className="py-4 px-6">
-                          <div className="flex items-center gap-2">
-                            <div className="flex-1 bg-slate-200 rounded-full h-2">
-                              <div 
-                                className="bg-primary-600 h-2 rounded-full transition-all"
-                                style={{ width: `${progress}%` }}
-                              ></div>
+                          <div className="space-y-1.5">
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 bg-slate-200 rounded-full h-2 min-w-[80px]">
+                                <div 
+                                  className="bg-primary-600 h-2 rounded-full transition-all"
+                                  style={{ width: `${Math.min(progress, 100)}%` }}
+                                />
+                              </div>
+                              <span className="text-sm font-semibold text-slate-700 min-w-[3rem] text-right">
+                                {progress.toFixed(1)}%
+                              </span>
                             </div>
-                            <span className="text-sm font-semibold text-slate-700 min-w-[3rem] text-right">
-                              {progress.toFixed(1)}%
-                            </span>
+                            {target > 0 && (
+                              <div className="text-xs text-slate-500">
+                                {formatINR(current)} / {formatINR(target)}
+                              </div>
+                            )}
                           </div>
                         </td>
                         <td className="py-4 px-6 text-sm text-slate-600">
@@ -473,7 +547,17 @@ export default function AdminProjects() {
                           {project.location?.state || 'N/A'}
                         </td>
                         <td className="py-4 px-6">
-                          <div className="flex gap-2">
+                          <div className="flex flex-wrap gap-2">
+                            <a
+                              href={projectUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3 py-1.5 bg-slate-50 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors text-sm font-semibold flex items-center gap-1"
+                              title="View on site"
+                            >
+                              <FiExternalLink className="w-4 h-4" />
+                              View
+                            </a>
                             <button
                               onClick={() => handleEdit(project)}
                               className="px-3 py-1.5 bg-primary-50 text-primary-700 hover:bg-primary-100 rounded-lg transition-colors text-sm font-semibold flex items-center gap-1"
@@ -528,30 +612,42 @@ export default function AdminProjects() {
               <form onSubmit={handleSubmit} className="p-6 space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Project Photo
+                    Project Images (multiple)
                   </label>
-                  <div className="flex items-center gap-4">
-                    {photoPreview && (
-                      <img
-                        src={photoPreview}
-                        alt="Preview"
-                        className="w-32 h-32 rounded-lg object-cover border-2 border-slate-300"
-                      />
-                    )}
-                    <label className="cursor-pointer">
-                      <div className="flex items-center gap-2 px-4 py-2 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors font-semibold">
-                        <FiUpload className="w-4 h-4" />
-                        <span>{photoPreview ? 'Change Photo' : 'Upload Photo'}</span>
+                  <div className="flex flex-wrap gap-4 mb-3">
+                    {photoPreviews.map((p, idx) => (
+                      <div key={idx} className="relative group">
+                        <img
+                          src={p.dataUrl || p}
+                          alt={`Preview ${idx + 1}`}
+                          className="w-24 h-24 rounded-lg object-cover border-2 border-slate-300"
+                        />
+                        {idx >= (editingProject?.images?.length || 0) && (
+                          <button
+                            type="button"
+                            onClick={() => removePhotoPreview(idx)}
+                            className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-sm hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <FiX className="w-3 h-3" />
+                          </button>
+                        )}
                       </div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handlePhotoChange}
-                        className="hidden"
-                      />
-                    </label>
+                    ))}
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">Max 5MB. JPG, PNG, WEBP</p>
+                  <label className="cursor-pointer inline-block">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors font-semibold">
+                      <FiUpload className="w-4 h-4" />
+                      <span>Add Photo(s)</span>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handlePhotoChange}
+                      className="hidden"
+                    />
+                  </label>
+                  <p className="text-xs text-slate-500 mt-1">Max 5MB each. JPG, PNG, WEBP. Select multiple for slider.</p>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">

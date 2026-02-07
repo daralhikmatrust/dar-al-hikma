@@ -123,6 +123,8 @@ function App() {
             <Route path="blogs/:slug" element={<BlogDetail />} />
             <Route path="events" element={<Events />} />
             <Route path="events/:slug" element={<EventDetail />} />
+            <Route path="privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="terms" element={<Terms />} />
           </Route>
 
           {/* Auth routes */}

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import api from '../../services/api'
 import { formatINR, formatCurrency } from '../../utils/currency'
 import { getPaymentTime } from '../../utils/paymentTime'
-import { FiDownload, FiSearch, FiFilter, FiX, FiFileText, FiUser, FiExternalLink, FiAlertCircle } from 'react-icons/fi'
+import { FiDownload, FiSearch, FiFilter, FiX, FiFileText, FiUser, FiExternalLink, FiAlertCircle, FiCopy } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 
 export default function AdminDonations() {
@@ -417,13 +417,15 @@ export default function AdminDonations() {
                           <div className="text-sm">
                             {(() => {
                               const paymentTime = getPaymentTime(donation);
+                              const istOpt = { timeZone: 'Asia/Kolkata' };
                               return (
                                 <>
                                   <div className="font-semibold text-slate-900">
                                     {paymentTime.toLocaleDateString('en-IN', {
                                       year: 'numeric',
                                       month: 'short',
-                                      day: 'numeric'
+                                      day: 'numeric',
+                                      ...istOpt
                                     })}
                                   </div>
                                   <div className="text-xs text-slate-500 mt-1">
@@ -431,7 +433,8 @@ export default function AdminDonations() {
                                       hour: '2-digit',
                                       minute: '2-digit',
                                       second: '2-digit',
-                                      hour12: true
+                                      hour12: true,
+                                      ...istOpt
                                     })}
                                   </div>
                                 </>
@@ -473,15 +476,43 @@ export default function AdminDonations() {
                           </div>
                         </td>
                         <td className="py-4 px-6">
-                          <div className="space-y-1">
+                          <div className="space-y-1.5">
                             {paymentId && (
-                              <div className="text-xs font-mono text-slate-600" title="Razorpay Payment ID">
-                                {paymentId.substring(0, 12)}...
+                              <div className="flex items-center gap-2 group">
+                                <span className="text-xs font-mono text-slate-600 truncate max-w-[140px]" title={paymentId}>
+                                  {paymentId.length > 16 ? `${paymentId.substring(0, 12)}...` : paymentId}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    navigator.clipboard.writeText(paymentId)
+                                    toast.success('Payment ID copied')
+                                  }}
+                                  className="flex-shrink-0 p-1 rounded text-slate-400 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+                                  title="Copy full Payment ID"
+                                >
+                                  <FiCopy className="w-3.5 h-3.5" />
+                                </button>
                               </div>
                             )}
                             {orderId && (
-                              <div className="text-xs font-mono text-slate-500" title="Razorpay Order ID">
-                                {orderId.substring(0, 12)}...
+                              <div className="flex items-center gap-2 group">
+                                <span className="text-xs font-mono text-slate-500 truncate max-w-[140px]" title={orderId}>
+                                  {orderId.length > 16 ? `${orderId.substring(0, 12)}...` : orderId}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    navigator.clipboard.writeText(orderId)
+                                    toast.success('Order ID copied')
+                                  }}
+                                  className="flex-shrink-0 p-1 rounded text-slate-400 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+                                  title="Copy full Order ID"
+                                >
+                                  <FiCopy className="w-3.5 h-3.5" />
+                                </button>
                               </div>
                             )}
                             {!paymentId && !orderId && (

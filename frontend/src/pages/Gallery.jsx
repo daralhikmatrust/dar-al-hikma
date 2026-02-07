@@ -1,10 +1,4 @@
-import { Helmet } from "react-helmet-async";
-<Helmet>
-  <title>Media Gallery | Our Work in Pictures - Dar Al Hikma Trust</title>
-  <meta name="description" content="View photos and videos of our charity work, educational programs, and community events across India." />
-  <link rel="canonical" href="https://daralhikma.org.in/gallery" />
-</Helmet>
-
+import { Helmet } from "react-helmet-async"
 import { useState, useEffect } from 'react'
 import api from '../services/api'
 import { FiImage, FiVideo, FiFile, FiX, FiDownload, FiGrid, FiZoomIn } from 'react-icons/fi'
@@ -47,7 +41,11 @@ export default function Gallery() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      
+      <Helmet>
+        <title>Media Gallery | Our Work in Pictures - Dar Al Hikma Trust</title>
+        <meta name="description" content="View photos and videos of our charity work, educational programs, and community events across India." />
+        <link rel="canonical" href="https://daralhikma.org.in/gallery" />
+      </Helmet>
       {/* --- HERO SECTION --- */}
       <section className="bg-white pt-24 pb-12 border-b border-slate-200 relative overflow-x-hidden">
         {/* Background Pattern */}

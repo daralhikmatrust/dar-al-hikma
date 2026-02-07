@@ -15,7 +15,8 @@ function formatDate(dateString) {
         month: 'long',
         day: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        timeZone: 'Asia/Kolkata'
     })
 }
 
@@ -132,14 +133,32 @@ export default function PaymentSuccess() {
             const response = await api.get(`/donations/${donation.id}/receipt`, {
                 responseType: 'blob'
             })
-            const url = window.URL.createObjectURL(new Blob([response.data]))
-            const printWindow = window.open(url, '_blank')
+            const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+            const printWindow = window.open(url, '_blank', 'noopener,noreferrer')
             if (printWindow) {
                 printWindow.onload = () => {
-                    printWindow.print()
+                    setTimeout(() => {
+                        try {
+                            printWindow.print()
+                            printWindow.onafterprint = () => {
+                                printWindow.close()
+                                window.URL.revokeObjectURL(url)
+                            }
+                        } catch {
+                            printWindow.close()
+                            window.URL.revokeObjectURL(url)
+                        }
+                    }, 600)
                 }
+                // Fallback if onload doesn't fire (PDF viewers may not trigger it)
+                setTimeout(() => {
+                    try {
+                        if (printWindow.print) printWindow.print()
+                        window.URL.revokeObjectURL(url)
+                    } catch { /* ignore */ }
+                }, 1800)
+                toast.success('Opening print dialog...')
             } else {
-                // Fallback: download if popup blocked
                 toast.error('Popup blocked. Please download the receipt instead.')
                 handleDownloadReceipt()
             }

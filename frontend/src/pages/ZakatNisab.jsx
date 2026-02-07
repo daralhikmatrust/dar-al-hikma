@@ -1,10 +1,4 @@
-import { Helmet } from "react-helmet-async";
-<Helmet>
-  <title>Current Zakat Nisab Values | Dar Al Hikma Trust</title>
-  <meta name="description" content="Stay updated with the latest Zakat Nisab values for gold and silver to ensure your charitable giving is accurate." />
-  <link rel="canonical" href="https://daralhikma.org.in/zakat/nisab" />
-</Helmet>
-
+import { Helmet } from "react-helmet-async"
 import { useEffect, useMemo, useState } from 'react'
 import { FiAlertCircle, FiCheckCircle, FiInfo, FiTrendingUp } from 'react-icons/fi'
 
@@ -45,6 +39,11 @@ export default function ZakatNisab() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <Helmet>
+        <title>Current Zakat Nisab Values | Dar Al Hikma Trust</title>
+        <meta name="description" content="Stay updated with the latest Zakat Nisab values for gold and silver to ensure your charitable giving is accurate." />
+        <link rel="canonical" href="https://daralhikma.org.in/zakat/nisab" />
+      </Helmet>
       <section className="border-b border-slate-200 bg-white">
         <div className="container-custom px-4 sm:px-6 lg:px-8 py-6 md:py-8 max-w-5xl">
           <div>

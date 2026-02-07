@@ -2,6 +2,19 @@ import api from '../services/api'
 
 const STORAGE_KEY = 'faculties'
 
+const DEFAULT_CATEGORY_NAMES = [
+  'Education',
+  'Healthcare',
+  'Livelihood Support',
+  'Relief Fund',
+  'Orphan Support',
+  'Scholarship',
+  'Women Empowerment',
+  'Poverty Alleviation',
+  'Nikah',
+  'Others'
+]
+
 export function getStoredFaculties() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
@@ -37,8 +50,21 @@ export async function fetchFacultiesFromProjects() {
   }
 }
 
+/**
+ * Load faculties for display. Returns ALL categories (including those with 0 projects)
+ * so they are visible on mobile and desktop. Uses: stored faculties > merged defaults + project faculties.
+ */
 export async function loadFacultiesWithFallback() {
   const stored = getStoredFaculties()
   if (stored.length > 0) return stored
-  return fetchFacultiesFromProjects()
+
+  const fromProjects = await fetchFacultiesFromProjects()
+  const seen = new Set(fromProjects.map((c) => c.name.toLowerCase()))
+  const defaults = DEFAULT_CATEGORY_NAMES.filter((n) => !seen.has(n.toLowerCase())).map((name, idx) => ({
+    id: name.toLowerCase().replace(/\s+/g, '-'),
+    name,
+    status: 'active',
+    sortOrder: fromProjects.length + idx
+  }))
+  return [...fromProjects, ...defaults].sort((a, b) => a.name.localeCompare(b.name))
 }

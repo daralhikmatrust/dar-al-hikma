@@ -133,6 +133,11 @@ export default class Project {
 
   static mapRowToProject(row) {
     if (!row) return null;
+    const roundAmount = (v) => {
+      if (v == null || v === '') return 0;
+      const n = parseFloat(v);
+      return isNaN(n) ? 0 : Math.round(n * 100) / 100;
+    };
     return {
       _id: row.id,
       id: row.id,
@@ -142,8 +147,8 @@ export default class Project {
       faculty: row.faculty,
       status: row.status,
       location: typeof row.location === 'string' ? JSON.parse(row.location) : (row.location || {}),
-      targetAmount: parseFloat(row.target_amount || 0),
-      currentAmount: parseFloat(row.current_amount || 0),
+      targetAmount: roundAmount(row.target_amount),
+      currentAmount: roundAmount(row.current_amount),
       startDate: row.start_date,
       completionDate: row.completion_date,
       images: typeof row.images === 'string' ? JSON.parse(row.images) : (row.images || []),

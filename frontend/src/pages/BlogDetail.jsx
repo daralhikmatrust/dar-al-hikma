@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async"
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import api from '../services/api'
@@ -30,6 +31,11 @@ export default function BlogDetail() {
 
   return (
     <div className="bg-white min-h-screen">
+      <Helmet>
+        <title>{blog?.title ?? 'Blog'} | Dar Al Hikma Trust</title>
+        <meta name="description" content={blog?.excerpt ?? blog?.description?.substring(0, 160) ?? 'Read our latest insights.'} />
+        <link rel="canonical" href={`https://daralhikma.org.in/blogs/${slug}`} />
+      </Helmet>
       {/* 1. DISCREET FLOATING NAV */}
       <nav className="fixed top-6 left-6 z-50">
         <Link 

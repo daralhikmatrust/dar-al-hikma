@@ -86,17 +86,31 @@ export const generateReceiptPDF = async (donation, project = null) => {
       
       yPos += 20;
 
-      // Receipt details in a clean two-column layout
-      const receiptDate = new Date(donation.createdAt || donation.created_at);
+      // Receipt details - use same timestamp logic as transaction management (getPaymentTime)
+      let receiptDate;
+      if (donation.status === 'completed') {
+        receiptDate = donation.metadata?.payment_captured_at
+          ? new Date(donation.metadata.payment_captured_at)
+          : (donation.statusChangedAt ? new Date(donation.statusChangedAt) : null);
+      }
+      if (!receiptDate && (donation.updatedAt || donation.updated_at)) {
+        receiptDate = new Date(donation.updatedAt || donation.updated_at);
+      }
+      if (!receiptDate) {
+        receiptDate = new Date(donation.createdAt || donation.created_at);
+      }
+      const istOptions = { timeZone: 'Asia/Kolkata' };
       const receiptDateStr = receiptDate.toLocaleDateString('en-IN', {
         year: 'numeric',
         month: 'long',
-        day: 'numeric'
+        day: 'numeric',
+        ...istOptions
       });
       const receiptTimeStr = receiptDate.toLocaleTimeString('en-IN', {
         hour: '2-digit',
         minute: '2-digit',
-        second: '2-digit'
+        second: '2-digit',
+        ...istOptions
       });
 
       // Left column - Receipt Number
@@ -518,10 +532,11 @@ export const generateReceiptPDF = async (donation, project = null) => {
          .strokeColor('#e5e7eb')
          .stroke();
       
+      const footerDate = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
       doc.fontSize(7.5)
          .font('Helvetica')
          .fillColor('#6b7280')
-         .text(`Generated on: ${new Date().toLocaleString('en-IN')}`, margin, footerY, {
+         .text(`Generated on: ${footerDate}`, margin, footerY, {
            align: 'left'
          })
          .text(`Receipt ID: ${donation.id || donation._id || 'N/A'}`, margin, footerY, {

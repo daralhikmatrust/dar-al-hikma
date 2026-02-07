@@ -1,12 +1,6 @@
-import { Helmet } from "react-helmet-async";
-<Helmet>
-  <title>Our Departments & Faculties | Dar Al Hikma Trust</title>
-  <meta name="description" content="Discover the various departments and specialized faculties driving our educational and welfare initiatives." />
-  <link rel="canonical" href="https://daralhikma.org.in/faculties" />
-</Helmet>
-
+import { Helmet } from "react-helmet-async"
 import { useEffect, useMemo, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { FiSearch, FiMapPin, FiFilter, FiHeart } from 'react-icons/fi'
 import api from '../services/api'
 import { getStoredFaculties, loadFacultiesWithFallback } from '../utils/faculties'
@@ -99,9 +93,11 @@ export default function Faculties() {
     const resolved = byLabel || bySlug
     if (resolved) setSelectedCategory(resolved.label)
     else if (urlCat === 'completed') setSelectedCategory('Successfully Completed')
+    else setSelectedCategory(urlCat)
   }, [location.search, categoryItems])
 
   // Keep URL in sync when category changes (from local UI, e.g. category filter buttons)
+  // Do NOT remove category param when categoryItems may still be loading (e.g. landing with ?category=Nikah)
   useEffect(() => {
     const item = categoryItems.find((c) => c.label === selectedCategory)
     const categoryParam = item?.label && item.label !== 'All' ? item.label : null
@@ -110,7 +106,8 @@ export default function Faculties() {
     if (categoryParam && currentCat !== categoryParam) {
       next.set('category', categoryParam)
       navigate({ pathname: location.pathname, search: next.toString() }, { replace: true })
-    } else if (!categoryParam && currentCat) {
+    } else if (!categoryParam && currentCat && selectedCategory === 'All') {
+      // Only remove param when user explicitly chose "All", not when categoryItems hasn't loaded yet
       next.delete('category')
       navigate({ pathname: location.pathname, search: next.toString() }, { replace: true })
     }
@@ -135,6 +132,8 @@ export default function Faculties() {
       if (categoryConfig.status) {
         list = list.filter((p) => p.status === categoryConfig.status)
       }
+    } else if (selectedCategory && selectedCategory !== 'All' && selectedCategory !== 'Successfully Completed') {
+      list = list.filter((p) => (p.faculty || '').toLowerCase() === selectedCategory.toLowerCase())
     }
 
     if (search) {
@@ -160,6 +159,11 @@ export default function Faculties() {
 
   return (
     <div className="bg-slate-50 min-h-screen">
+      <Helmet>
+        <title>Our Departments &amp; Faculties | Dar Al Hikma Trust</title>
+        <meta name="description" content="Discover the various departments and specialized faculties driving our educational and welfare initiatives." />
+        <link rel="canonical" href="https://daralhikma.org.in/faculties" />
+      </Helmet>
       {/* Top search & filters */}
       <section className="bg-white/95 border-b border-slate-200/70 backdrop-blur">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
@@ -276,12 +280,17 @@ export default function Faculties() {
                     const raised = normalizeAmount(project.currentAmount)
                     const goal = normalizeAmount(project.targetAmount)
                     const pct = goal > 0 ? Math.min((raised / goal) * 100, 100) : 0
+                    const projectId = project._id || project.id
 
                     return (
                       <div
                         key={project._id}
-                        className="bg-white rounded-2xl shadow-sm hover:shadow-xl border border-slate-200/80 hover:border-amber-200 overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-1"
+                        className="bg-white rounded-2xl shadow-sm hover:shadow-xl border border-slate-200/80 hover:border-primary-200 overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-1"
                       >
+                        <Link
+                          to={`/projects/${projectId}`}
+                          className="block flex-1 flex flex-col"
+                        >
                         <div className="relative h-40 bg-slate-200">
                           {(() => {
                             const firstImage = project.images?.[0]
@@ -349,10 +358,19 @@ export default function Faculties() {
                             </>
                           )}
 
+                          <span className="mt-auto inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold text-primary-600 border-2 border-primary-600 rounded-full hover:bg-primary-50 transition-all">
+                            Explore Project
+                          </span>
+                        </div>
+                        </Link>
+                        <div className="p-4 pt-0 -mt-2">
                           <button
                             type="button"
-                            onClick={() => navigate('/donate', { state: { project: project._id } })}
-                            className="mt-auto inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold bg-primary-600 text-white rounded-full hover:bg-primary-700 focus:ring-2 focus:ring-primary-300 focus:outline-none shadow-sm hover:shadow-md transition-all"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              navigate('/donate', { state: { project: project._id } })
+                            }}
+                            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold bg-primary-600 text-white rounded-xl hover:bg-primary-700 focus:ring-2 focus:ring-primary-300 focus:outline-none shadow-sm hover:shadow-md transition-all"
                           >
                             <FiHeart className="w-3 h-3" />
                             Donate Now

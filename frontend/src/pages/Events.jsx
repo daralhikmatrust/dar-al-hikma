@@ -1,10 +1,4 @@
-import { Helmet } from "react-helmet-async";
-<Helmet>
-  <title>Upcoming Events & Campaigns | Dar Al Hikma Trust</title>
-  <meta name="description" content="Join our upcoming charity events, webinars, and community outreach programs. Be a part of the change." />
-  <link rel="canonical" href="https://daralhikma.org.in/events" />
-</Helmet>
-
+import { Helmet } from "react-helmet-async"
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../services/api'
@@ -140,7 +134,11 @@ export default function Events() {
 
   return (
     <div className="bg-slate-50 min-h-screen">
-      
+      <Helmet>
+        <title>Upcoming Events &amp; Campaigns | Dar Al Hikma Trust</title>
+        <meta name="description" content="Join our upcoming charity events, webinars, and community outreach programs. Be a part of the change." />
+        <link rel="canonical" href="https://daralhikma.org.in/events" />
+      </Helmet>
       {/* --- HERO SECTION --- */}
       {/* Changes: Reduced bottom padding (pb-8) to decrease gap */}
       <section className="bg-white pt-24 pb-8 border-b border-slate-200">

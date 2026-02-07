@@ -1,10 +1,4 @@
-import { Helmet } from "react-helmet-async";
-<Helmet>
-  <title>Latest Blogs & Insights | Dar Al Hikma Trust</title>
-  <meta name="description" content="Read the latest articles on charity, Islamic welfare, and community development from the Dar Al Hikma team." />
-  <link rel="canonical" href="https://daralhikma.org.in/blogs" />
-</Helmet>
-
+import { Helmet } from "react-helmet-async"
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import PageHeader from '../components/PageHeader'
@@ -43,6 +37,11 @@ export default function Blogs() {
 
   return (
     <div>
+      <Helmet>
+        <title>Latest Blogs &amp; Insights | Dar Al Hikma Trust</title>
+        <meta name="description" content="Read the latest articles on charity, Islamic welfare, and community development from the Dar Al Hikma team." />
+        <link rel="canonical" href="https://daralhikma.org.in/blogs" />
+      </Helmet>
       {/* Hero Section with Search */}
       <section className="py-12 md:py-16 lg:py-20 bg-gradient-to-b from-slate-50 to-white">
         <div className="container-custom px-4 sm:px-6 lg:px-8">

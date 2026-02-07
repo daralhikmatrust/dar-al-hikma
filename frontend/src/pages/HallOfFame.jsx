@@ -1,10 +1,4 @@
-import { Helmet } from "react-helmet-async";
-<Helmet>
-  <title>Hall of Fame | Our Honored Donors & Volunteers - Dar Al Hikma</title>
-  <meta name="description" content="Recognizing the extraordinary contributions of our donors and volunteers who make our mission possible." />
-  <link rel="canonical" href="https://daralhikma.org.in/hall-of-fame" />
-</Helmet>
-
+import { Helmet } from "react-helmet-async"
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../services/api'
@@ -69,7 +63,11 @@ export default function HallOfFame() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      
+      <Helmet>
+        <title>Hall of Fame | Our Honored Donors &amp; Volunteers - Dar Al Hikma</title>
+        <meta name="description" content="Recognizing the extraordinary contributions of our donors and volunteers who make our mission possible." />
+        <link rel="canonical" href="https://daralhikma.org.in/hall-of-fame" />
+      </Helmet>
       {/* --- HERO SECTION --- */}
       <section className="bg-white pt-24 pb-16 border-b border-slate-200 relative overflow-hidden">
         {/* Background Pattern */}

@@ -1,10 +1,4 @@
-import { Helmet } from "react-helmet-async";
-<Helmet>
-  <title>Charitable Projects | Impacting Lives - Dar Al Hikma Trust</title>
-  <meta name="description" content="Explore our ongoing projects in education, health, and social welfare. See how your contributions are making a real difference." />
-  <link rel="canonical" href="https://daralhikma.org.in/projects" />
-</Helmet>
-
+import { Helmet } from "react-helmet-async"
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../services/api'
@@ -73,7 +67,11 @@ export default function Projects() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      
+      <Helmet>
+        <title>Charitable Projects | Impacting Lives - Dar Al Hikma Trust</title>
+        <meta name="description" content="Explore our ongoing projects in education, health, and social welfare. See how your contributions are making a real difference." />
+        <link rel="canonical" href="https://daralhikma.org.in/projects" />
+      </Helmet>
       {/* --- HERO SECTION --- */}
       <section className="bg-white pt-24 pb-10 border-b border-slate-200 relative overflow-x-hidden">
         {/* Background Pattern */}

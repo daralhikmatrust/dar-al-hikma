@@ -1,10 +1,6 @@
 import { Helmet } from "react-helmet-async";
 
-<Helmet>
-  <title>About Us | Our Mission & Vision - Dar Al Hikma Trust</title>
-  <meta name="description" content="Learn about Dar Al Hikma Trust's journey, our values, and the dedicated team working to provide educational and welfare support across India." />
-  <link rel="canonical" href="https://daralhikma.org.in/about" />
-</Helmet>
+
 
 import { useEffect, useState } from 'react'
 import api from '../services/api'
@@ -71,7 +67,13 @@ export default function About() {
   }
 
   return (
+
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <Helmet>
+  <title>About Us | Our Mission & Vision - Dar Al Hikma Trust</title>
+  <meta name="description" content="Learn about Dar Al Hikma Trust's journey, our values, and the dedicated team working to provide educational and welfare support across India." />
+  <link rel="canonical" href="https://daralhikma.org.in/about" />
+</Helmet>
       {/* Page header */}
       <section className="py-8 md:py-12">
         <PageHeader

@@ -1,11 +1,4 @@
-import { Helmet } from "react-helmet-async";
-
-<Helmet>
-  <title>Dar Al Hikma Trust | Islamic Charity & Education in India</title>
-  <meta name="description" content="Dar Al Hikma Trust provides education, relief, and welfare support to the underprivileged. Join us in our mission to empower humanity through your donations." />
-  <link rel="canonical" href="https://daralhikma.org.in/" />
-</Helmet>
-
+import { Helmet } from "react-helmet-async"
 import { Link, useNavigate } from 'react-router-dom'
 import { 
   FiArrowRight, FiHeart, FiBook, FiUsers, FiChevronLeft, FiChevronRight, 
@@ -92,8 +85,11 @@ export default function Home() {
 
   return (
     <div className="font-sans text-slate-900 bg-white selection:bg-primary-100 overflow-x-hidden">
-      
-      
+      <Helmet>
+        <title>Dar Al Hikma Trust | Islamic Charity &amp; Education in India</title>
+        <meta name="description" content="Dar Al Hikma Trust provides education, relief, and welfare support to the underprivileged. Join us in our mission to empower humanity through your donations." />
+        <link rel="canonical" href="https://daralhikma.org.in/" />
+      </Helmet>
 
       {/* --- HERO SECTION --- */}
       <section className="relative pt-2 pb-16 lg:pt-2 lg:pb-24 bg-white overflow-hidden">
