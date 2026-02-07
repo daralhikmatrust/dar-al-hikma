@@ -1,9 +1,10 @@
 import { Helmet } from "react-helmet-async"
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import api from '../services/api'
 import { formatINR, normalizeAmount } from '../utils/currency'
-import { FiSearch, FiArrowRight, FiTarget, FiFilter, FiActivity, FiLayers } from 'react-icons/fi'
+import { FiSearch, FiArrowRight, FiTarget, FiFilter, FiActivity, FiLayers, FiCalendar, FiMapPin } from 'react-icons/fi'
 
 export default function Projects() {
   const [projects, setProjects] = useState([])
@@ -24,20 +25,15 @@ export default function Projects() {
     fetchProjects()
   }, [filters])
 
-  // Load faculties defined in admin
   useEffect(() => {
     try {
       const storedFaculties = localStorage.getItem('faculties')
       if (storedFaculties) {
         const parsed = JSON.parse(storedFaculties)
         const names = parsed.map((f) => f.name).filter(Boolean)
-        if (names.length) {
-          setFacultyOptions(names)
-        }
+        if (names.length) setFacultyOptions(names)
       }
-    } catch {
-      // keep defaults
-    }
+    } catch { /* keep defaults */ }
   }, [])
 
   const fetchProjects = async () => {
@@ -56,7 +52,6 @@ export default function Projects() {
           p.description.toLowerCase().includes(filters.search.toLowerCase())
         )
       }
-      
       setProjects(filtered)
     } catch (error) {
       console.error('Failed to fetch projects:', error)
@@ -66,191 +61,208 @@ export default function Projects() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+    <div className="min-h-screen bg-[#FBFDFF] font-sans text-slate-900">
       <Helmet>
-        <title>Charitable Projects | Impacting Lives - Dar Al Hikma Trust</title>
-        <meta name="description" content="Explore our ongoing projects in education, health, and social welfare. See how your contributions are making a real difference." />
-        <link rel="canonical" href="https://daralhikma.org.in/projects" />
+        <title>Mission Directory | Dar Al Hikma Trust</title>
+        <meta name="description" content="Explore our global impact projects." />
       </Helmet>
-      {/* --- HERO SECTION --- */}
-      <section className="bg-white pt-24 pb-10 border-b border-slate-200 relative overflow-x-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-30 pointer-events-none">
-            <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]"></div>
-        </div>
 
-        <div className="container-custom px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <span className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full bg-primary-50 text-primary-700 text-xs font-bold tracking-widest uppercase mb-4 border border-primary-100">
-            <FiLayers className="w-3 h-3" /> Our Impact
-          </span>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">
-            Our <span className="text-primary-600">Projects</span> & Initiatives
-          </h1>
-          <p className="text-base md:text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
-            Discover how we are transforming lives across education, healthcare, and welfare through our dedicated programs.
-          </p>
+      {/* --- PREMIUM HERO SECTION --- */}
+      <section className="relative bg-slate-900 pt-32 pb-24 overflow-hidden">
+        {/* Background Accents */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary-600/10 rounded-full blur-[100px] -mr-48 -mt-48" />
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-blue-600/10 rounded-full blur-[80px] -ml-36 -mb-36" />
+        
+        <div className="container-custom px-6 relative z-10">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-3xl"
+          >
+            <span className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-primary-500/10 text-primary-400 text-[10px] font-black tracking-[0.2em] uppercase mb-6 border border-primary-500/20">
+              <FiLayers className="w-3 h-3" /> Impact Directory
+            </span>
+            <h1 className="text-4xl md:text-7xl font-black text-white mb-6 tracking-tight leading-[1.1]">
+              Our <span className="text-primary-500 text-glow">Missions</span> & Initiatives
+            </h1>
+            <p className="text-slate-400 text-lg md:text-xl font-medium leading-relaxed max-w-2xl">
+              Transparent, field-driven programs designed to create sustainable change in underserved communities.
+            </p>
+          </motion.div>
         </div>
       </section>
 
-      {/* --- FILTERS SECTION --- */}
-      <section className="py-8 bg-white border-b border-slate-100 sticky top-0 z-30 shadow-sm/50">
-        <div className="container-custom px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
-            
-            {/* Search */}
-            <div className="relative w-full md:w-96 group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FiSearch className="h-4 w-4 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
-              </div>
+      {/* --- GLASSMOPHISM FILTERS --- */}
+      <section className="sticky top-0 z-40 px-6 -mt-8">
+        <div className="container-custom">
+          <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/40 flex flex-col lg:flex-row gap-4 items-center">
+            {/* Search Input */}
+            <div className="relative flex-1 w-full group">
+              <FiSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
               <input
                 type="text"
-                className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg leading-5 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-all shadow-sm"
-                placeholder="Search projects..."
+                placeholder="Search missions by keyword..."
+                className="w-full pl-14 pr-6 py-4 bg-slate-50/50 border-none rounded-2xl focus:ring-2 ring-primary-500/20 outline-none transition-all font-medium text-slate-700"
                 value={filters.search}
                 onChange={(e) => setFilters({ ...filters, search: e.target.value })}
               />
             </div>
 
-            {/* Dropdowns */}
-            <div className="flex w-full md:w-auto gap-3">
-              <div className="relative w-full md:w-48">
-                 <select
-                  className="block w-full pl-3 pr-8 py-2 text-sm border border-slate-200 bg-white rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 shadow-sm cursor-pointer text-slate-600"
-                  value={filters.status}
-                  onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                >
-                  <option value="">All Statuses</option>
-                  <option value="ongoing">Ongoing</option>
-                  <option value="completed">Completed</option>
-                  <option value="planned">Planned</option>
-                </select>
-              </div>
+            {/* Select Dropdowns */}
+            <div className="flex flex-wrap lg:flex-nowrap gap-4 w-full lg:w-auto">
+              <select
+                className="flex-1 lg:w-48 px-6 py-4 bg-slate-50/50 border-none rounded-2xl focus:ring-2 ring-primary-500/20 outline-none transition-all font-bold text-sm text-slate-600 appearance-none cursor-pointer"
+                value={filters.status}
+                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+              >
+                <option value="">All Statuses</option>
+                <option value="ongoing">Ongoing</option>
+                <option value="completed">Completed</option>
+                <option value="planned">Planned</option>
+              </select>
 
-              <div className="relative w-full md:w-48">
-                <select
-                  className="block w-full pl-3 pr-8 py-2 text-sm border border-slate-200 bg-white rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 shadow-sm cursor-pointer text-slate-600"
-                  value={filters.faculty}
-                  onChange={(e) => setFilters({ ...filters, faculty: e.target.value })}
-                >
-                  <option value="">All Categories</option>
-                  {facultyOptions.map((name) => (
-                    <option key={name} value={name}>{name}</option>
-                  ))}
-                </select>
-              </div>
+              <select
+                className="flex-1 lg:w-56 px-6 py-4 bg-slate-50/50 border-none rounded-2xl focus:ring-2 ring-primary-500/20 outline-none transition-all font-bold text-sm text-slate-600 appearance-none cursor-pointer"
+                value={filters.faculty}
+                onChange={(e) => setFilters({ ...filters, faculty: e.target.value })}
+              >
+                <option value="">All Categories</option>
+                {facultyOptions.map((name) => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
             </div>
-
           </div>
         </div>
       </section>
 
       {/* --- PROJECTS GRID --- */}
-      <section className="py-10 bg-slate-50 min-h-[50vh]">
-        <div className="container-custom px-4 sm:px-6 lg:px-8">
-          {loading ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="bg-white rounded-xl border border-slate-200 p-4 animate-pulse">
-                  <div className="aspect-[16/9] bg-slate-200 rounded-lg mb-4"></div>
-                  <div className="h-5 bg-slate-200 rounded mb-2 w-3/4"></div>
-                  <div className="h-4 bg-slate-200 rounded mb-4 w-1/2"></div>
-                  <div className="h-2 bg-slate-200 rounded w-full"></div>
-                </div>
-              ))}
-            </div>
-          ) : projects.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 bg-white rounded-xl border border-slate-200 border-dashed">
-              <div className="p-3 bg-slate-50 rounded-full mb-3">
-                <FiTarget className="w-8 h-8 text-slate-400" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900">No projects found</h3>
-              <p className="text-slate-500 text-sm mt-1">Try adjusting your filters.</p>
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {projects.map((project) => (
-                <Link
-                  key={project._id}
-                  to={`/projects/${project._id}`}
-                  className="group bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col h-full"
-                >
-                  {/* Image Area */}
-                  <div className="aspect-[16/9] bg-slate-100 relative overflow-hidden">
-                    {(() => {
-                      const firstImage = project.images?.[0]
-                      const imageUrl = typeof firstImage === 'string' ? firstImage : firstImage?.url
-                      if (imageUrl) {
-                        return (
-                          <img
-                            src={imageUrl}
-                            alt={project.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                        )
-                      }
-                      return (
-                        <div className="w-full h-full flex items-center justify-center bg-slate-50">
-                          <FiActivity className="text-slate-300 w-10 h-10" />
-                        </div>
-                      )
-                    })()}
-                    
-                    {/* Status Pill */}
-                    <div className="absolute top-3 right-3">
-                      <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border shadow-sm ${
-                        project.status === 'completed' 
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
-                          : project.status === 'ongoing' 
-                          ? 'bg-blue-50 text-blue-700 border-blue-100' 
-                          : 'bg-slate-50 text-slate-600 border-slate-200'
-                      }`}>
-                        {project.status || 'planned'}
-                      </span>
-                    </div>
+      <section className="py-20">
+        <div className="container-custom px-6">
+          <AnimatePresence mode='wait'>
+            {loading ? (
+              <motion.div 
+                key="loading"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="grid md:grid-cols-2 lg:grid-cols-3 gap-10"
+              >
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 p-6 space-y-6">
+                    <div className="aspect-[4/3] bg-slate-100 rounded-[2rem] animate-pulse" />
+                    <div className="h-6 bg-slate-100 rounded-full w-3/4 animate-pulse" />
+                    <div className="h-4 bg-slate-100 rounded-full w-1/2 animate-pulse" />
                   </div>
+                ))}
+              </motion.div>
+            ) : projects.length === 0 ? (
+              <motion.div 
+                key="empty"
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                className="text-center py-20 bg-slate-50 rounded-[3rem] border border-dashed border-slate-200"
+              >
+                <FiTarget className="w-16 h-16 text-slate-300 mx-auto mb-6" />
+                <h3 className="text-2xl font-black text-slate-900">No Missions Found</h3>
+                <p className="text-slate-500 font-medium">Try adjusting your filters to find what you're looking for.</p>
+              </motion.div>
+            ) : (
+              <motion.div 
+                key="grid"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                className="grid md:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-14"
+              >
+                {projects.map((project) => {
+                  const progress = project.targetAmount > 0 
+                    ? Math.round((normalizeAmount(project.currentAmount) / normalizeAmount(project.targetAmount)) * 100) 
+                    : 0;
 
-                  {/* Content */}
-                  <div className="p-5 flex flex-col flex-1">
-                    {/* Faculty Tag */}
-                    <div className="mb-2">
-                        <span className="text-[10px] font-bold text-primary-600 uppercase tracking-wider bg-primary-50 px-2 py-0.5 rounded border border-primary-100">
-                            {project.faculty || 'General'}
-                        </span>
-                    </div>
-
-                    <h3 className="text-lg font-bold text-slate-900 mb-2 leading-tight group-hover:text-primary-700 transition-colors">
-                      {project.title}
-                    </h3>
-                    
-                    <p className="text-slate-500 text-sm mb-5 line-clamp-2 leading-relaxed flex-1">
-                      {project.shortDescription || project.description}
-                    </p>
-
-                    {/* Progress Section */}
-                    {project.targetAmount > 0 && (
-                      <div className="mb-4 pt-4 border-t border-slate-50">
-                        <div className="flex justify-between items-end text-xs text-slate-600 mb-1.5">
-                          <span className="font-semibold text-slate-900">{project.progress || 0}% Funded</span>
-                          <span className="text-slate-400">Target: {formatINR(project.targetAmount)}</span>
-                        </div>
-                        <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                          <div
-                            className="bg-primary-600 h-1.5 rounded-full transition-all duration-500"
-                            style={{ width: `${Math.min((normalizeAmount(project.currentAmount) / normalizeAmount(project.targetAmount)) * 100, 100)}%` }}
-                          ></div>
+                  return (
+                    <Link
+                      key={project._id}
+                      to={`/projects/${project._id}`}
+                      className="group bg-white rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] transition-all duration-500 flex flex-col h-full"
+                    >
+                      {/* Image Area with Ken Burns Effect */}
+                      <div className="aspect-[4/3] rounded-[2rem] m-4 overflow-hidden relative">
+                        <div className="absolute inset-0 bg-slate-900/10 group-hover:bg-transparent transition-all z-10" />
+                        <img
+                          src={typeof project.images?.[0] === 'string' ? project.images[0] : project.images?.[0]?.url || 'https://via.placeholder.com/800'}
+                          alt={project.title}
+                          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-[1500ms]"
+                        />
+                        
+                        {/* Dynamic Status Tag */}
+                        <div className="absolute top-4 right-4 z-20">
+                          <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-md shadow-lg border border-white/20 ${
+                            project.status === 'completed' 
+                              ? 'bg-emerald-500/90 text-white' 
+                              : project.status === 'ongoing' 
+                              ? 'bg-primary-600/90 text-white' 
+                              : 'bg-white/90 text-slate-900'
+                          }`}>
+                            {project.status || 'Planned'}
+                          </span>
                         </div>
                       </div>
-                    )}
 
-                    {/* Footer Link */}
-                    <div className={`flex items-center text-sm font-semibold text-slate-900 group-hover:text-primary-600 transition-colors ${project.targetAmount > 0 ? '' : 'pt-4 border-t border-slate-50 mt-auto'}`}>
-                      Read More <FiArrowRight className="ml-1 w-4 h-4 transition-transform group-hover:translate-x-1" />
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
+                      {/* Content Area */}
+                      <div className="p-8 pt-2 flex flex-col flex-1">
+                        <div className="flex items-center gap-2 mb-4">
+                          <span className="text-[10px] font-black text-primary-600 uppercase tracking-[0.15em] bg-primary-50 px-3 py-1 rounded-lg">
+                            {project.faculty || 'General Mission'}
+                          </span>
+                        </div>
+
+                        <h3 className="text-2xl font-black text-slate-900 mb-3 leading-[1.2] group-hover:text-primary-700 transition-colors">
+                          {project.title}
+                        </h3>
+                        
+                        <p className="text-slate-500 font-medium text-sm mb-8 line-clamp-2 leading-relaxed">
+                          {project.shortDescription || project.description}
+                        </p>
+
+                        {/* Progress Section */}
+                        {project.targetAmount > 0 ? (
+                          <div className="mt-auto space-y-4 pt-6 border-t border-slate-50">
+                            <div className="flex justify-between items-end">
+                              <div className="space-y-1">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Goal Reached</p>
+                                <p className="text-xl font-black text-slate-900">{progress}%</p>
+                              </div>
+                              <div className="text-right space-y-1">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Target</p>
+                                <p className="text-sm font-bold text-slate-600">{formatINR(project.targetAmount)}</p>
+                              </div>
+                            </div>
+                            <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden shadow-inner">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                whileInView={{ width: `${Math.min(progress, 100)}%` }}
+                                transition={{ duration: 1.5, ease: "easeOut" }}
+                                className="h-full bg-gradient-to-r from-primary-500 to-primary-600 rounded-full"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mt-auto pt-6 border-t border-slate-50 flex items-center gap-4 text-slate-400 font-bold text-xs">
+                             <div className="flex items-center gap-1.5"><FiMapPin className="text-primary-500"/> {project.location?.city || 'India'}</div>
+                             <div className="flex items-center gap-1.5"><FiCalendar className="text-primary-500"/> {new Date(project.createdAt).getFullYear()}</div>
+                          </div>
+                        )}
+
+                        {/* Hover Footer */}
+                        <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-50">
+                          <span className="text-xs font-black text-slate-900 uppercase tracking-widest group-hover:text-primary-600 transition-colors">View Mission</span>
+                          <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-primary-600 group-hover:text-white transition-all duration-300">
+                             <FiArrowRight className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" />
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </section>
     </div>
