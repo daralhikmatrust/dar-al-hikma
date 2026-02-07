@@ -26,8 +26,9 @@ const app = express();
 
 // 4️⃣ Secure CORS Configuration
 const allowedOrigins = [
-  "https://daralhikma.org",
-  "https://www.daralhikma.org",
+  'https://daralhikma.org.in',
+  'https://www.daralhikma.org.in', // Include www if applicable
+  'http://localhost:5173',
   "https://dar-al-hikma.vercel.app",
   "http://localhost:5173",
   "http://localhost:5174", // ✅ Added 5174 (your current Vite port)
