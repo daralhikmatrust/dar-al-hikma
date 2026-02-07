@@ -2,10 +2,14 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import helmet from "helmet"; // Added for extra security
+import helmet from "helmet";
 
-// 2️⃣ Database utilities
+// 2️⃣ Database utilities & ALL Content Models
 import { initDatabase, checkDatabaseHealth } from "./utils/db.js";
+import Project from "./models/Project.js"; 
+import Blog from "./models/Blog.js";       
+import Event from "./models/Event.js"; // 🔥 Added
+// Note: If you have a separate Faculty model, import it here too.
 
 // 3️⃣ Route imports
 import authRoutes from "./routes/auth.routes.js";
@@ -26,19 +30,16 @@ const app = express();
 
 // 4️⃣ Secure CORS Configuration
 const allowedOrigins = [
-  'https://www.daralhikma.org',      // Your new GoDaddy domain
-  'https://daralhikma.org',          // Non-www version
-  'https://dar-al-hikma.vercel.app', // Keep your Vercel backup URL
-  'http://localhost:5173'            // Local development
+  'https://www.daralhikma.org',      
+  'https://daralhikma.org',          
+  'https://dar-al-hikma.vercel.app', 
+  'http://localhost:5173'            
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
-    
-    // Exact match OR secure regex for Vercel preview branches
     const isVercelPreview = /^https:\/\/dar-al-hikma-.*\.vercel\.app$/.test(origin);
-    
     if (allowedOrigins.includes(origin) || isVercelPreview || process.env.NODE_ENV === 'development') {
       callback(null, true);
     } else {
@@ -53,33 +54,93 @@ app.use(cors({
 }));
 
 // 5️⃣ Security & Body Parsing
-app.use(helmet({ crossOriginResourcePolicy: false })); // Basic security headers
+app.use(helmet({ crossOriginResourcePolicy: false })); 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// 6️⃣ Keep-Alive Ping (Render Free Tier)
+// 6️⃣ FULL DYNAMIC SITEMAP GENERATION
+app.get("/sitemap.xml", async (req, res) => {
+  try {
+    const BASE_URL = "https://daralhikma.org";
+    
+    // Fetch all dynamic content
+    const projects = await Project.find({ isPublished: true }, "_id updatedAt");
+    const blogs = await Blog.find({ status: "published" }, "slug updatedAt");
+    const events = await Event.find({}, "slug updatedAt"); // 🔥 Added
+
+    const staticPages = [
+      "", "/about-us", "/projects", "/faculties", "/gallery", 
+      "/contact", "/hall-of-fame", "/donate", "/zakat-calculator", "/blogs", "/events"
+    ];
+
+    let xml = '<?xml version="1.0" encoding="UTF-8"?>';
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+
+    // Static Pages
+    staticPages.forEach(page => {
+      xml += `<url>
+                <loc>${BASE_URL}${page}</loc>
+                <changefreq>monthly</changefreq>
+                <priority>${page === "" ? "1.0" : "0.8"}</priority>
+              </url>`;
+    });
+
+    // Dynamic Projects
+    projects.forEach(p => {
+      xml += `<url>
+                <loc>${BASE_URL}/projects/${p._id}</loc>
+                <lastmod>${p.updatedAt.toISOString().split('T')[0]}</lastmod>
+                <changefreq>weekly</changefreq>
+                <priority>0.7</priority>
+              </url>`;
+    });
+
+    // Dynamic Blogs
+    blogs.forEach(b => {
+      xml += `<url>
+                <loc>${BASE_URL}/blogs/${b.slug}</loc>
+                <lastmod>${b.updatedAt.toISOString().split('T')[0]}</lastmod>
+                <changefreq>weekly</changefreq>
+                <priority>0.6</priority>
+              </url>`;
+    });
+
+    // Dynamic Events
+    events.forEach(e => {
+      xml += `<url>
+                <loc>${BASE_URL}/events/${e.slug}</loc>
+                <lastmod>${e.updatedAt.toISOString().split('T')[0]}</lastmod>
+                <changefreq>daily</changefreq>
+                <priority>0.7</priority>
+              </url>`;
+    });
+
+    xml += "</urlset>";
+
+    res.header("Content-Type", "application/xml");
+    res.send(xml);
+  } catch (error) {
+    console.error("❌ Sitemap Error:", error.message);
+    res.status(500).end();
+  }
+});
+
+// 7️⃣ Keep-Alive & API Routes (Same as before...)
 setInterval(async () => {
   try {
     const healthUrl = `https://dar-al-hikma-backend.onrender.com/health`;
     const res = await fetch(healthUrl);
     if (res.ok) console.log("☀️ Keep-alive: Server is awake");
-  } catch (err) {
-    console.error("🌙 Keep-alive failed:", err.message);
-  }
+  } catch (err) { console.error("🌙 Keep-alive failed:", err.message); }
 }, 14 * 60 * 1000);
 
-// 7️⃣ Health check
 app.get("/health", async (req, res) => {
   const dbHealth = await checkDatabaseHealth();
   res.status(dbHealth.healthy ? 200 : 503).json({
-    success: dbHealth.healthy,
-    status: dbHealth.healthy ? "UP" : "DOWN",
-    database: dbHealth,
-    timestamp: new Date().toISOString(),
+    success: dbHealth.healthy, status: dbHealth.healthy ? "UP" : "DOWN", database: dbHealth, timestamp: new Date().toISOString(),
   });
 });
 
-// 8️⃣ API Routes
 app.use("/api/webhooks", webhookRoutes); 
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
@@ -94,34 +155,15 @@ app.use("/api/events", eventRoutes);
 app.use("/api/testimonials", testimonialRoutes);
 app.use("/api/about-us", aboutusRoutes);
 
-// 9️⃣ Error Handling
 app.use((err, req, res, next) => {
   const statusCode = err.status || 500;
-  console.error(`❌ [${new Date().toISOString()}] Error:`, err.message);
-  
-  res.status(statusCode).json({
-    success: false,
-    message: err.message || "Internal Server Error",
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-  });
+  res.status(statusCode).json({ success: false, message: err.message || "Internal Server Error" });
 });
 
-// 🔟 Server Lifecycle
 const PORT = process.env.PORT || 5000;
-
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server active on port ${PORT}`);
-  
-  initDatabase()
-    .then(() => console.log("✅ Database link established"))
-    .catch(error => console.error("❌ Database link failed:", error.message));
+  initDatabase().then(() => console.log("✅ Database link established")).catch(error => console.error("❌ Database link failed:", error.message));
 });
 
-// Graceful Shutdown (Important for Render/Supabase)
-process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received: closing HTTP server');
-  server.close(() => {
-    console.log('HTTP server closed');
-    process.exit(0);
-  });
-});
+process.on('SIGTERM', () => { server.close(() => { process.exit(0); }); });
