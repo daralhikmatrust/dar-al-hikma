@@ -4,11 +4,9 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 
-// 2️⃣ Database utilities & Content Models
+// 2️⃣ Database utilities & Verified Models
 import { initDatabase, checkDatabaseHealth } from "./utils/db.js";
-import Project from "./models/Project.js"; 
-import Blog from "./models/Blog.js";       
-import Event from "./models/Event.js"; 
+import Project from "./models/Project.model.js"; 
 
 // 3️⃣ Route imports
 import authRoutes from "./routes/auth.routes.js";
@@ -29,53 +27,62 @@ const app = express();
 
 // 4️⃣ Secure CORS Configuration
 const allowedOrigins = [
-  'https://www.daralhikma.org',
-  'https://daralhikma.org',
-  'https://dar-al-hikma.vercel.app', 
-  'http://localhost:5173'
+  "https://daralhikma.org",
+  "https://www.daralhikma.org",
+  "https://dar-al-hikma.vercel.app",
+  "http://localhost:5173"
 ];
 
 app.use(cors({
-  origin: function (origin, callback) {
+  origin(origin, callback) {
     if (!origin) return callback(null, true);
     const isVercelPreview = /^https:\/\/dar-al-hikma-.*\.vercel\.app$/.test(origin);
-    if (allowedOrigins.includes(origin) || isVercelPreview || process.env.NODE_ENV === 'development') {
+    if (allowedOrigins.includes(origin) || isVercelPreview) {
       callback(null, true);
     } else {
-      callback(new Error('CORS Not allowed'));
+      callback(new Error("CORS not allowed"));
     }
   },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "x-rtb-fingerprint-id"],
 }));
 
 // 5️⃣ Security & Body Parsing
-app.use(helmet({ crossOriginResourcePolicy: false })); 
+app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// 6️⃣ DYNAMIC SITEMAP GENERATION (Placed BEFORE API routes for priority)
+// 6️⃣ DYNAMIC SITEMAP (SEO SAFE)
 app.get("/sitemap.xml", async (req, res) => {
   try {
     const BASE_URL = "https://daralhikma.org";
-    
-    // Parallel fetching for performance
+
     const [projects, blogs, events] = await Promise.all([
       Project.find({ isPublished: true }, "_id updatedAt"),
       Blog.find({ status: "published" }, "slug updatedAt"),
-      Event.find({}, "slug updatedAt")
+      Event.find({ isPublished: true }, "slug updatedAt")
     ]);
 
+    // 🔹 Static frontend routes (from your screenshot)
     const staticPages = [
-      "", "/about-us", "/projects", "/faculties", "/gallery", 
-      "/contact", "/hall-of-fame", "/donate", "/zakat-calculator", "/blogs", "/events"
+      "", 
+      "/about", 
+      "/projects", 
+      "/blogs", 
+      "/events", 
+      "/gallery", 
+      "/faculties", 
+      "/hall-of-fame", 
+      "/contact", 
+      "/zakat-calculator", 
+      "/zakat-nisab",
+      "/login",
+      "/register"
     ];
 
-    let xml = '<?xml version="1.0" encoding="UTF-8"?>';
-    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>`;
+    xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
 
-    // Static Pages
+    // Static pages
     staticPages.forEach(page => {
       xml += `
       <url>
@@ -85,61 +92,59 @@ app.get("/sitemap.xml", async (req, res) => {
       </url>`;
     });
 
-    // Dynamic Projects
+    // Dynamic projects
     projects.forEach(p => {
       xml += `
       <url>
         <loc>${BASE_URL}/projects/${p._id}</loc>
-        <lastmod>${p.updatedAt.toISOString().split('T')[0]}</lastmod>
+        <lastmod>${p.updatedAt.toISOString()}</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>
       </url>`;
     });
 
-    // Dynamic Blogs
+    // Dynamic blogs
     blogs.forEach(b => {
       xml += `
       <url>
         <loc>${BASE_URL}/blogs/${b.slug}</loc>
-        <lastmod>${b.updatedAt.toISOString().split('T')[0]}</lastmod>
+        <lastmod>${b.updatedAt.toISOString()}</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
       </url>`;
     });
 
-    // Dynamic Events
+    // Dynamic events
     events.forEach(e => {
       xml += `
       <url>
         <loc>${BASE_URL}/events/${e.slug}</loc>
-        <lastmod>${e.updatedAt.toISOString().split('T')[0]}</lastmod>
-        <changefreq>daily</changefreq>
-        <priority>0.7</priority>
+        <lastmod>${e.updatedAt.toISOString()}</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
       </url>`;
     });
 
-    xml += "\n</urlset>";
+    xml += `</urlset>`;
 
-    res.header("Content-Type", "application/xml");
+    res.set("Content-Type", "application/xml");
+    res.set("Cache-Control", "public, max-age=3600"); // cache 1 hour
     res.status(200).send(xml);
-  } catch (error) {
-    console.error("❌ Sitemap Error:", error.message);
+
+  } catch (err) {
+    console.error("❌ Sitemap error:", err.message);
     res.status(500).send("Error generating sitemap");
   }
 });
 
 // 7️⃣ Health check
-app.get("/health", async (req, res) => {
+app.get("/health", async (_, res) => {
   const dbHealth = await checkDatabaseHealth();
-  res.status(dbHealth.healthy ? 200 : 503).json({
-    success: dbHealth.healthy,
-    database: dbHealth,
-    timestamp: new Date().toISOString(),
-  });
+  res.status(dbHealth.healthy ? 200 : 503).json(dbHealth);
 });
 
 // 8️⃣ API Routes
-app.use("/api/webhooks", webhookRoutes); 
+app.use("/api/webhooks", webhookRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/donations", donationRoutes);
@@ -153,24 +158,24 @@ app.use("/api/events", eventRoutes);
 app.use("/api/testimonials", testimonialRoutes);
 app.use("/api/about-us", aboutusRoutes);
 
-// 9️⃣ Error Handling (Must be LAST)
+// 9️⃣ Error handler (LAST)
 app.use((err, req, res, next) => {
-  const statusCode = err.status || 500;
-  res.status(statusCode).json({ success: false, message: err.message || "Internal Server Error" });
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error"
+  });
 });
 
-// 🔟 Server Lifecycle
+// 🔟 Server lifecycle
 const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server active on port ${PORT}`);
-  initDatabase().then(() => console.log("✅ Database link established")).catch(error => console.error("❌ Database link failed:", error.message));
+const server = app.listen(PORT, "0.0.0.0", async () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  await initDatabase();
 });
 
-// Keep-Alive for Render
-setInterval(async () => {
-  try {
-    await fetch(`https://dar-al-hikma-backend.onrender.com/health`);
-  } catch (err) { /* silent */ }
+// Keep Render awake
+setInterval(() => {
+  fetch("https://dar-al-hikma-backend.onrender.com/health").catch(() => {});
 }, 13 * 60 * 1000);
 
-process.on('SIGTERM', () => { server.close(() => { process.exit(0); }); });
+process.on("SIGTERM", () => server.close(() => process.exit(0)));
