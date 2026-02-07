@@ -4,7 +4,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 
-// 2️⃣ Database utilities & Models (MATCHING YOUR FOLDER STRUCTURE)
+// 2️⃣ Database utilities & Verified Models
 import { initDatabase, checkDatabaseHealth } from "./utils/db.js";
 import Project from "./models/Project.model.js"; 
 
@@ -51,33 +51,24 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// 6️⃣ DYNAMIC SITEMAP (FIXED)
+// 6️⃣ DYNAMIC SITEMAP (FIXED: NO BLOG/EVENT REFERENCES)
 app.get("/sitemap.xml", async (req, res) => {
   try {
     const BASE_URL = "https://daralhikma.org";
 
-    // Only fetch Project because Blog/Event models don't exist in your models folder yet
+    // Only fetch Project because it's the only one currently in your models folder
     const projects = await Project.find({ isPublished: true }, "_id updatedAt").lean();
 
-    // Static frontend routes from your src/pages folder
     const staticPages = [
-      "",
-      "/about",
-      "/projects",
-      "/blogs",
-      "/events",
-      "/gallery",
-      "/faculties",
-      "/hall-of-fame",
-      "/contact",
-      "/zakat-calculator",
-      "/zakat-nisab"
+      "", "/about", "/projects", "/blogs", "/events", 
+      "/gallery", "/faculties", "/hall-of-fame", "/contact", 
+      "/zakat-calculator", "/zakat-nisab"
     ];
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>`;
     xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
 
-    // Static pages loop
+    // Static Pages
     staticPages.forEach(page => {
       xml += `
       <url>
@@ -87,7 +78,7 @@ app.get("/sitemap.xml", async (req, res) => {
       </url>`;
     });
 
-    // Dynamic projects loop with safety checks
+    // Dynamic Projects
     if (projects && projects.length > 0) {
       projects.forEach(p => {
         const lastMod = p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
@@ -104,12 +95,11 @@ app.get("/sitemap.xml", async (req, res) => {
     xml += `</urlset>`;
 
     res.set("Content-Type", "application/xml");
-    res.set("Cache-Control", "public, max-age=3600");
     res.status(200).send(xml);
 
   } catch (err) {
     console.error("❌ Sitemap error:", err.message);
-    res.status(500).send(`Error generating sitemap: ${err.message}`);
+    res.status(500).send("Error generating sitemap");
   }
 });
 
@@ -136,10 +126,7 @@ app.use("/api/about-us", aboutusRoutes);
 
 // 9️⃣ Error handler
 app.use((err, req, res, next) => {
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || "Internal Server Error"
-  });
+  res.status(err.status || 500).json({ success: false, message: err.message || "Internal Server Error" });
 });
 
 // 🔟 Server lifecycle
