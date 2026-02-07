@@ -1,3 +1,9 @@
+<Helmet>
+  <title>Dar Al Hikma Trust | Islamic Charity & Education in India</title>
+  <meta name="description" content="Dar Al Hikma Trust provides education, relief, and welfare support to the underprivileged. Join us in our mission to empower humanity through your donations." />
+  <link rel="canonical" href="https://daralhikma.org.in/" />
+</Helmet>
+
 import { Link, useNavigate } from 'react-router-dom'
 import { 
   FiArrowRight, FiHeart, FiBook, FiUsers, FiChevronLeft, FiChevronRight, 

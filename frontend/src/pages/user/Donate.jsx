@@ -1,3 +1,9 @@
+<Helmet>
+  <title>Donate Now | Support a Cause - Dar Al Hikma Trust</title>
+  <meta name="description" content="Make a secure online donation to support education, healthcare, and emergency relief programs. Your Sadaqah and Zakat change lives." />
+  <link rel="canonical" href="https://daralhikma.org.in/donate" />
+</Helmet>
+
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'

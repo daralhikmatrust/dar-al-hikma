@@ -1,3 +1,8 @@
+<Helmet>
+  <title>{project?.title || 'Project Details'} | Dar Al Hikma Trust</title>
+  <meta name="description" content={project?.description?.substring(0, 160) || 'Learn more about this project.'} />
+</Helmet>
+
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import api from '../services/api'

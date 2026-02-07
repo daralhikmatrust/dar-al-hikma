@@ -12,7 +12,8 @@ import {
   FiAward,
   FiShield,
   FiZap,
-  FiFileText
+  FiFileText,
+  FiExternalLink // Added for legal links
 } from 'react-icons/fi'
 
 export default function Footer() {
@@ -34,7 +35,7 @@ export default function Footer() {
         {/* Top Grid Area */}
         <div className="grid md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8 mb-16">
           
-          {/* Column 1: Mission & Brand (Span 4) */}
+          {/* Column 1: Mission & Brand */}
           <div className="lg:col-span-4 space-y-8">
             <div>
               <h3 className="text-white text-2xl font-black mb-3 tracking-tight">
@@ -62,38 +63,37 @@ export default function Footer() {
               ))}
             </div>
 
-            {/* Credibility Badge */}
             <div className="inline-flex items-center gap-3 px-4 py-2 rounded-2xl bg-slate-900/50 border border-slate-800/50">
               <FiShield className="text-indigo-500" size={18} />
               <span className="text-[11px] font-bold text-slate-300 uppercase tracking-widest">Verified 80G Tax Exempt</span>
             </div>
           </div>
 
-          {/* Column 2: Navigation (Span 2) - FIXED LINKS */}
-          {/* Column 2: Navigation (Span 2) */}
-<div className="lg:col-span-2 lg:pl-4">
-  <h4 className="text-white font-bold mb-6 text-xs uppercase tracking-[0.2em]">Explore</h4>
-  <ul className="space-y-4 text-sm">
-    {[
-      { name: 'About Us', path: '/about-us' },
-      { name: 'Our Projects', path: '/projects' },
-      { name: 'Media Gallery', path: '/media' },
-      { name: 'Hall of Fame', path: '/hall-of-fame' }
-    ].map((item) => (
-      <li key={item.name}>
-        <button 
-          onClick={() => handleLinkClick(item.path)}
-          className="hover:text-indigo-400 transition-colors text-left flex items-center gap-2 group"
-        >
-          <span className="w-1 h-1 rounded-full bg-slate-800 group-hover:bg-indigo-500 transition-all"></span>
-          {item.name}
-        </button>
-      </li>
-    ))}
-  </ul>
-</div>
+          {/* Column 2: Navigation - UPDATED WITH LEGAL LINKS */}
+          <div className="lg:col-span-2 lg:pl-4">
+            <h4 className="text-white font-bold mb-6 text-xs uppercase tracking-[0.2em]">Explore</h4>
+            <ul className="space-y-4 text-sm">
+              {[
+                { name: 'About Us', path: '/about-us' },
+                { name: 'Our Projects', path: '/projects' },
+                { name: 'Media Gallery', path: '/media' },
+                { name: 'Privacy Policy', path: '/privacy-policy' }, // New
+                { name: 'Terms of Service', path: '/terms' }       // New
+              ].map((item) => (
+                <li key={item.name}>
+                  <button 
+                    onClick={() => handleLinkClick(item.path)}
+                    className="hover:text-indigo-400 transition-colors text-left flex items-center gap-2 group"
+                  >
+                    <span className="w-1 h-1 rounded-full bg-slate-800 group-hover:bg-indigo-500 transition-all"></span>
+                    {item.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-          {/* Column 3: Impact Actions (Span 3) */}
+          {/* Column 3: Impact Actions */}
           <div className="lg:col-span-3">
             <h4 className="text-white font-bold mb-6 text-xs uppercase tracking-[0.2em]">Quick Actions</h4>
             <div className="space-y-3">
@@ -119,7 +119,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Column 4: Reach Out (Span 3) */}
+          {/* Column 4: Reach Out */}
           <div className="lg:col-span-3">
             <h4 className="text-white font-bold mb-6 text-xs uppercase tracking-[0.2em]">Reach Us</h4>
             <ul className="space-y-4 text-sm">
@@ -140,10 +140,18 @@ export default function Footer() {
 
         </div>
 
-        {/* Bottom Bar */}
+        {/* Bottom Bar - UPDATED FOR SEO TRUST */}
         <div className="border-t border-slate-900 pt-8 flex flex-col md:flex-row justify-between items-center text-[11px] text-slate-600 gap-6">
           <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 text-center md:text-left">
             <p>&copy; {new Date().getFullYear()} Dar Al Hikma Trust. All rights reserved.</p>
+            <span className="hidden md:block w-1 h-1 rounded-full bg-slate-800"></span>
+            
+            {/* Added subtle legal links for SEO crawlers */}
+            <div className="flex gap-4">
+               <button onClick={() => handleLinkClick('/privacy-policy')} className="hover:text-slate-400">Privacy</button>
+               <button onClick={() => handleLinkClick('/terms')} className="hover:text-slate-400">Terms</button>
+            </div>
+
             <span className="hidden md:block w-1 h-1 rounded-full bg-slate-800"></span>
             <p className="flex items-center gap-2">
               <FiFileText size={12} className="text-slate-700" />

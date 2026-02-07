@@ -1,3 +1,9 @@
+<Helmet>
+  <title>Latest Blogs & Insights | Dar Al Hikma Trust</title>
+  <meta name="description" content="Read the latest articles on charity, Islamic welfare, and community development from the Dar Al Hikma team." />
+  <link rel="canonical" href="https://daralhikma.org.in/blogs" />
+</Helmet>
+
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import PageHeader from '../components/PageHeader'

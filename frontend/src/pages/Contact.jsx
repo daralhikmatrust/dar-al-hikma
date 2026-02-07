@@ -1,3 +1,9 @@
+<Helmet>
+  <title>Contact Us | Get in Touch - Dar Al Hikma Trust</title>
+  <meta name="description" content="Have questions? Contact Dar Al Hikma Trust for inquiries regarding donations, projects, or how you can get involved." />
+  <link rel="canonical" href="https://daralhikma.org.in/contact" />
+</Helmet>
+
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import PageHeader from '../components/PageHeader'

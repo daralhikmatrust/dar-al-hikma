@@ -1,3 +1,9 @@
+<Helmet>
+  <title>Media Gallery | Our Work in Pictures - Dar Al Hikma Trust</title>
+  <meta name="description" content="View photos and videos of our charity work, educational programs, and community events across India." />
+  <link rel="canonical" href="https://daralhikma.org.in/gallery" />
+</Helmet>
+
 import { useState, useEffect } from 'react'
 import api from '../services/api'
 import { FiImage, FiVideo, FiFile, FiX, FiDownload, FiGrid, FiZoomIn } from 'react-icons/fi'

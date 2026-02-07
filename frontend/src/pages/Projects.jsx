@@ -1,3 +1,9 @@
+<Helmet>
+  <title>Charitable Projects | Impacting Lives - Dar Al Hikma Trust</title>
+  <meta name="description" content="Explore our ongoing projects in education, health, and social welfare. See how your contributions are making a real difference." />
+  <link rel="canonical" href="https://daralhikma.org.in/projects" />
+</Helmet>
+
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../services/api'

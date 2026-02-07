@@ -1,3 +1,9 @@
+<Helmet>
+  <title>Hall of Fame | Our Honored Donors & Volunteers - Dar Al Hikma</title>
+  <meta name="description" content="Recognizing the extraordinary contributions of our donors and volunteers who make our mission possible." />
+  <link rel="canonical" href="https://daralhikma.org.in/hall-of-fame" />
+</Helmet>
+
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../services/api'

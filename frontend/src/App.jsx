@@ -24,6 +24,8 @@ import BlogDetail from './pages/BlogDetail'
 import Events from './pages/Events'
 import EventDetail from './pages/EventDetail'
 import ZakatNisab from './pages/ZakatNisab'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import Terms from './pages/Terms'
 
 // Auth pages
 import Login from './pages/auth/Login'

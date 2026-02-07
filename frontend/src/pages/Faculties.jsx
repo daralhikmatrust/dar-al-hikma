@@ -1,3 +1,9 @@
+<Helmet>
+  <title>Our Departments & Faculties | Dar Al Hikma Trust</title>
+  <meta name="description" content="Discover the various departments and specialized faculties driving our educational and welfare initiatives." />
+  <link rel="canonical" href="https://daralhikma.org.in/faculties" />
+</Helmet>
+
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { FiSearch, FiMapPin, FiFilter, FiHeart } from 'react-icons/fi'

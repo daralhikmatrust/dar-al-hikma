@@ -1,3 +1,9 @@
+<Helmet>
+  <title>About Us | Our Mission & Vision - Dar Al Hikma Trust</title>
+  <meta name="description" content="Learn about Dar Al Hikma Trust's journey, our values, and the dedicated team working to provide educational and welfare support across India." />
+  <link rel="canonical" href="https://daralhikma.org.in/about" />
+</Helmet>
+
 import { useEffect, useState } from 'react'
 import api from '../services/api'
 import PageHeader from '../components/PageHeader'

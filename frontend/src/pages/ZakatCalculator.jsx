@@ -1,3 +1,9 @@
+<Helmet>
+  <title>Zakat Calculator Online | Calculate Your Zakat Accurately</title>
+  <meta name="description" content="Use our easy-to-use Zakat Calculator to calculate your Zakat on gold, silver, cash, and assets according to Islamic principles." />
+  <link rel="canonical" href="https://daralhikma.org.in/zakat-calculator" />
+</Helmet>
+
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
