@@ -51,24 +51,40 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// 6️⃣ DYNAMIC SITEMAP (FIXED: NO BLOG/EVENT REFERENCES)
+// 6️⃣ DYNAMIC SITEMAP (MATCHED TO APP.JSX)
 app.get("/sitemap.xml", async (req, res) => {
   try {
     const BASE_URL = "https://daralhikma.org";
 
-    // Only fetch Project because it's the only one currently in your models folder
+    // Only query Project (Blog/Event models confirmed missing from your models folder)
     const projects = await Project.find({ isPublished: true }, "_id updatedAt").lean();
 
+    // All unique public paths found in your App.jsx
     const staticPages = [
-      "", "/about", "/projects", "/blogs", "/events", 
-      "/gallery", "/faculties", "/hall-of-fame", "/contact", 
-      "/zakat-calculator", "/zakat-nisab"
+      "",
+      "/about/who-we-are",
+      "/about-us",
+      "/projects",
+      "/faculties",
+      "/categories",
+      "/media",
+      "/gallery",
+      "/contact",
+      "/hall-of-fame",
+      "/donate",
+      "/zakat-calculator",
+      "/zakat/nisab",
+      "/blogs",
+      "/events",
+      "/login",
+      "/register",
+      "/forgot-password"
     ];
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>`;
     xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
 
-    // Static Pages
+    // Static pages
     staticPages.forEach(page => {
       xml += `
       <url>
@@ -78,7 +94,7 @@ app.get("/sitemap.xml", async (req, res) => {
       </url>`;
     });
 
-    // Dynamic Projects
+    // Dynamic project pages
     if (projects && projects.length > 0) {
       projects.forEach(p => {
         const lastMod = p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
