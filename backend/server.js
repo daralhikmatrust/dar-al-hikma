@@ -121,10 +121,14 @@ app.post("/api/contact", async (req, res) => {
       return res.status(400).json({ success: false, message: "Name, email and message are required." });
     }
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: { user: emailUser, pass: emailPass },
-    });
+    // ✅ CORRECT (Explicitly points to Gmail)
+const transporter = nodemailer.createTransport({
+  service: 'gmail', // This tells Nodemailer to use smtp.gmail.com
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS?.replace(/\s/g, ""), // Sanitize password
+  },
+});
 
     const n = escapeHtml(sName);
     const e = escapeHtml(sEmail);
