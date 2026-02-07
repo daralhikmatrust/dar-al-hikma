@@ -4,9 +4,8 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 
-// 2️⃣ Database utilities & Verified Models
+// 2️⃣ Database utilities (Removed Project import to stop warnings)
 import { initDatabase, checkDatabaseHealth } from "./utils/db.js";
-import Project from "./models/Project.model.js"; 
 
 // 3️⃣ Route imports
 import authRoutes from "./routes/auth.routes.js";
@@ -51,72 +50,43 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// 6️⃣ DYNAMIC SITEMAP (MATCHED TO APP.JSX)
-app.get("/sitemap.xml", async (req, res) => {
-  try {
-    const BASE_URL = "https://daralhikma.org";
+// 6️⃣ STATIC SITEMAP (MANUAL PATH - FIXED SYNTAX)
+app.get("/sitemap.xml", (req, res) => {
+  const BASE_URL = "https://daralhikma.org";
 
-    // Only query Project (Blog/Event models confirmed missing from your models folder)
-    const projects = await Project.find({ isPublished: true }, "_id updatedAt").lean();
+  const staticPages = [
+    "", 
+    "/about/who-we-are", 
+    "/about-us", 
+    "/projects", 
+    "/faculties", 
+    "/gallery", 
+    "/media",
+    "/contact", 
+    "/hall-of-fame", 
+    "/donate", 
+    "/zakat-calculator", 
+    "/zakat/nisab",
+    "/blogs",
+    "/events"
+  ];
 
-    // All unique public paths found in your App.jsx
-    const staticPages = [
-      "",
-      "/about/who-we-are",
-      "/about-us",
-      "/projects",
-      "/faculties",
-      "/categories",
-      "/media",
-      "/gallery",
-      "/contact",
-      "/hall-of-fame",
-      "/donate",
-      "/zakat-calculator",
-      "/zakat/nisab",
-      "/blogs",
-      "/events",
-      "/login",
-      "/register",
-      "/forgot-password"
-    ];
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>';
+  xml += '\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
 
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>`;
-    xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
+  staticPages.forEach(page => {
+    xml += `
+    <url>
+      <loc>${BASE_URL}${page}</loc>
+      <changefreq>${page === "" ? "daily" : "monthly"}</changefreq>
+      <priority>${page === "" ? "1.0" : "0.8"}</priority>
+    </url>`;
+  });
 
-    // Static pages
-    staticPages.forEach(page => {
-      xml += `
-      <url>
-        <loc>${BASE_URL}${page}</loc>
-        <changefreq>${page === "" ? "daily" : "monthly"}</changefreq>
-        <priority>${page === "" ? "1.0" : "0.8"}</priority>
-      </url>`;
-    });
+  xml += "\n</urlset>";
 
-    // Dynamic project pages
-    if (projects && projects.length > 0) {
-      projects.forEach(p => {
-        const lastMod = p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-        xml += `
-        <url>
-          <loc>${BASE_URL}/projects/${p._id}</loc>
-          <lastmod>${lastMod}</lastmod>
-          <changefreq>weekly</changefreq>
-          <priority>0.7</priority>
-        </url>`;
-      });
-    }
-
-    xml += `</urlset>`;
-
-    res.set("Content-Type", "application/xml");
-    res.status(200).send(xml);
-
-  } catch (err) {
-    console.error("❌ Sitemap error:", err.message);
-    res.status(500).send("Error generating sitemap");
-  }
+  res.header("Content-Type", "application/xml");
+  res.status(200).send(xml);
 });
 
 // 7️⃣ Health check
