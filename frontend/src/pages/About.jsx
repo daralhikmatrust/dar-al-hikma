@@ -1,3 +1,5 @@
+import { Helmet } from "react-helmet-async";
+
 <Helmet>
   <title>About Us | Our Mission & Vision - Dar Al Hikma Trust</title>
   <meta name="description" content="Learn about Dar Al Hikma Trust's journey, our values, and the dedicated team working to provide educational and welfare support across India." />

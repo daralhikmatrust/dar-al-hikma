@@ -1,9 +1,4 @@
-<Helmet>
-  <title>Donate Now | Support a Cause - Dar Al Hikma Trust</title>
-  <meta name="description" content="Make a secure online donation to support education, healthcare, and emergency relief programs. Your Sadaqah and Zakat change lives." />
-  <link rel="canonical" href="https://daralhikma.org.in/donate" />
-</Helmet>
-
+import { Helmet } from 'react-helmet-async'
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
@@ -288,6 +283,12 @@ export default function Donate() {
 
   return (
     <div>
+      <Helmet>
+      <title>Donate Now | Support a Cause - Dar Al Hikma Trust</title>
+      <meta name="description" content="Make a secure online donation to support education, healthcare, and emergency relief programs. Your Sadaqah and Zakat change lives." />
+     <link rel="canonical" href="https://daralhikma.org.in/donate" />
+     </Helmet>
+
       {/* Hero Section */}
       <section className="py-16 md:py-24 bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">

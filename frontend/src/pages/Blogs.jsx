@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 <Helmet>
   <title>Latest Blogs & Insights | Dar Al Hikma Trust</title>
   <meta name="description" content="Read the latest articles on charity, Islamic welfare, and community development from the Dar Al Hikma team." />

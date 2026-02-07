@@ -1,3 +1,5 @@
+import { Helmet } from "react-helmet-async";
+
 <Helmet>
   <title>Dar Al Hikma Trust | Islamic Charity & Education in India</title>
   <meta name="description" content="Dar Al Hikma Trust provides education, relief, and welfare support to the underprivileged. Join us in our mission to empower humanity through your donations." />

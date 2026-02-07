@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 <Helmet>
   <title>Media Gallery | Our Work in Pictures - Dar Al Hikma Trust</title>
   <meta name="description" content="View photos and videos of our charity work, educational programs, and community events across India." />

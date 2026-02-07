@@ -4,7 +4,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 
-// 2️⃣ Database utilities (Removed Project import to stop warnings)
+// 2️⃣ Database utilities
 import { initDatabase, checkDatabaseHealth } from "./utils/db.js";
 
 // 3️⃣ Route imports
@@ -29,20 +29,27 @@ const allowedOrigins = [
   "https://daralhikma.org",
   "https://www.daralhikma.org",
   "https://dar-al-hikma.vercel.app",
-  "http://localhost:5173"
+  "http://localhost:5173",
+  "http://localhost:5174", // ✅ Added 5174 (your current Vite port)
 ];
 
 app.use(cors({
-  origin(origin, callback) {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
+    
     const isVercelPreview = /^https:\/\/dar-al-hikma-.*\.vercel\.app$/.test(origin);
-    if (allowedOrigins.includes(origin) || isVercelPreview) {
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || isVercelPreview) {
       callback(null, true);
     } else {
-      callback(new Error("CORS not allowed"));
+      console.log("CORS Blocked for origin:", origin);
+      callback(new Error("Not allowed by CORS"));
     }
   },
   credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 // 5️⃣ Security & Body Parsing
@@ -50,52 +57,28 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// 6️⃣ STATIC SITEMAP (MANUAL PATH - FIXED SYNTAX)
+// 6️⃣ STATIC SITEMAP
 app.get("/sitemap.xml", (req, res) => {
-  const BASE_URL = "https://daralhikma.org";
+  const BASE_URL = "https://daralhikma.org.in"; // ✅ Updated to your .org.in domain
 
   const staticPages = [
-    "", 
-    "/about/who-we-are", 
-    "/about-us", 
-    "/projects", 
-    "/faculties", 
-    "/gallery", 
-    "/media",
-    "/contact", 
-    "/hall-of-fame", 
-    "/donate", 
-    "/zakat-calculator", 
-    "/zakat/nisab",
-    "/blogs",
-    "/events"
+    "", "/about-us", "/projects", "/media", "/contact", 
+    "/hall-of-fame", "/donate", "/zakat-calculator", 
+    "/zakat/nisab", "/blogs", "/events"
   ];
 
   let xml = '<?xml version="1.0" encoding="UTF-8"?>';
   xml += '\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
-
   staticPages.forEach(page => {
-    xml += `
-    <url>
-      <loc>${BASE_URL}${page}</loc>
-      <changefreq>${page === "" ? "daily" : "monthly"}</changefreq>
-      <priority>${page === "" ? "1.0" : "0.8"}</priority>
-    </url>`;
+    xml += `\n  <url>\n    <loc>${BASE_URL}${page}</loc>\n    <priority>${page === "" ? "1.0" : "0.8"}</priority>\n  </url>`;
   });
-
   xml += "\n</urlset>";
 
   res.header("Content-Type", "application/xml");
-  res.status(200).send(xml);
+  res.send(xml);
 });
 
-// 7️⃣ Health check
-app.get("/health", async (_, res) => {
-  const dbHealth = await checkDatabaseHealth();
-  res.status(dbHealth.healthy ? 200 : 503).json(dbHealth);
-});
-
-// 8️⃣ API Routes
+// 7️⃣ API Routes
 app.use("/api/webhooks", webhookRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
@@ -110,21 +93,36 @@ app.use("/api/events", eventRoutes);
 app.use("/api/testimonials", testimonialRoutes);
 app.use("/api/about-us", aboutusRoutes);
 
+// ✅ FIXED Health check: Moved inside /api to match frontend calls
+app.get("/api/health", async (_, res) => {
+  const dbHealth = await checkDatabaseHealth();
+  res.status(dbHealth.healthy ? 200 : 503).json(dbHealth);
+});
+
 // 9️⃣ Error handler
 app.use((err, req, res, next) => {
-  res.status(err.status || 500).json({ success: false, message: err.message || "Internal Server Error" });
+  console.error("❌ Backend Error:", err.stack);
+  res.status(err.status || 500).json({ 
+    success: false, 
+    message: err.message || "Internal Server Error" 
+  });
 });
 
 // 🔟 Server lifecycle
 const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, "0.0.0.0", async () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  await initDatabase();
+  try {
+    await initDatabase();
+  } catch (error) {
+    console.error("❌ Database failed to initialize:", error);
+  }
 });
 
 // Keep Render awake
 setInterval(() => {
-  fetch("https://dar-al-hikma-backend.onrender.com/health").catch(() => {});
+  const url = process.env.BACKEND_URL || `http://localhost:${PORT}`;
+  fetch(`${url}/api/health`).catch(() => {});
 }, 13 * 60 * 1000);
 
 process.on("SIGTERM", () => server.close(() => process.exit(0)));

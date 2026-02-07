@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 <Helmet>
   <title>Zakat Calculator Online | Calculate Your Zakat Accurately</title>
   <meta name="description" content="Use our easy-to-use Zakat Calculator to calculate your Zakat on gold, silver, cash, and assets according to Islamic principles." />

@@ -1,10 +1,6 @@
-<Helmet>
-  <title>{project?.title || 'Project Details'} | Dar Al Hikma Trust</title>
-  <meta name="description" content={project?.description?.substring(0, 160) || 'Learn more about this project.'} />
-</Helmet>
-
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { Helmet } from "react-helmet-async" // 1. Keep import at top
 import api from '../services/api'
 import { formatINR, normalizeAmount } from '../utils/currency'
 import PageHeader from '../components/PageHeader'
@@ -30,6 +26,7 @@ export default function ProjectDetail() {
     }
   }
 
+  // Handle Loading State
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -38,6 +35,7 @@ export default function ProjectDetail() {
     )
   }
 
+  // Handle Not Found State
   if (!project) {
     return (
       <div className="section-padding text-center">
@@ -49,6 +47,13 @@ export default function ProjectDetail() {
 
   return (
     <div>
+      {/* 2. Place Helmet here, inside the return, where 'project' is now defined */}
+      <Helmet>
+        <title>{project.title} | Dar Al Hikma Trust</title>
+        <meta name="description" content={project.shortDescription || project.description?.substring(0, 160)} />
+        <link rel="canonical" href={`https://daralhikma.org.in/projects/${id}`} />
+      </Helmet>
+
       {/* Page Header */}
       <section className="py-8 md:py-12 bg-slate-50">
         <div className="container-custom px-4 sm:px-6 lg:px-8">
@@ -218,4 +223,3 @@ export default function ProjectDetail() {
     </div>
   )
 }
-

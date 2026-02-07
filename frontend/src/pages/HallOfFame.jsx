@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 <Helmet>
   <title>Hall of Fame | Our Honored Donors & Volunteers - Dar Al Hikma</title>
   <meta name="description" content="Recognizing the extraordinary contributions of our donors and volunteers who make our mission possible." />

@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 <Helmet>
   <title>Contact Us | Get in Touch - Dar Al Hikma Trust</title>
   <meta name="description" content="Have questions? Contact Dar Al Hikma Trust for inquiries regarding donations, projects, or how you can get involved." />

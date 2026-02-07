@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 <Helmet>
   <title>Current Zakat Nisab Values | Dar Al Hikma Trust</title>
   <meta name="description" content="Stay updated with the latest Zakat Nisab values for gold and silver to ensure your charitable giving is accurate." />

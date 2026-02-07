@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 <Helmet>
   <title>Our Departments & Faculties | Dar Al Hikma Trust</title>
   <meta name="description" content="Discover the various departments and specialized faculties driving our educational and welfare initiatives." />
