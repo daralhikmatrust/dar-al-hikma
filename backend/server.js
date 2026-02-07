@@ -4,7 +4,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 
-// 2️⃣ Database utilities & Verified Models
+// 2️⃣ Database utilities & Models (MATCHING YOUR FOLDER STRUCTURE)
 import { initDatabase, checkDatabaseHealth } from "./utils/db.js";
 import Project from "./models/Project.model.js"; 
 
@@ -51,89 +51,65 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// 6️⃣ DYNAMIC SITEMAP (SEO SAFE)
+// 6️⃣ DYNAMIC SITEMAP (FIXED)
 app.get("/sitemap.xml", async (req, res) => {
   try {
     const BASE_URL = "https://daralhikma.org";
 
-    const [projects, blogs, events] = await Promise.all([
-      Project.find({ isPublished: true }, "_id updatedAt"),
-      Blog.find({ status: "published" }, "slug updatedAt"),
-      Event.find({ isPublished: true }, "slug updatedAt")
-    ]);
+    // Only fetch Project because Blog/Event models don't exist in your models folder yet
+    const projects = await Project.find({ isPublished: true }, "_id updatedAt").lean();
 
-    // 🔹 Static frontend routes (from your screenshot)
+    // Static frontend routes from your src/pages folder
     const staticPages = [
-      "", 
-      "/about", 
-      "/projects", 
-      "/blogs", 
-      "/events", 
-      "/gallery", 
-      "/faculties", 
-      "/hall-of-fame", 
-      "/contact", 
-      "/zakat-calculator", 
-      "/zakat-nisab",
-      "/login",
-      "/register"
+      "",
+      "/about",
+      "/projects",
+      "/blogs",
+      "/events",
+      "/gallery",
+      "/faculties",
+      "/hall-of-fame",
+      "/contact",
+      "/zakat-calculator",
+      "/zakat-nisab"
     ];
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>`;
     xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
 
-    // Static pages
+    // Static pages loop
     staticPages.forEach(page => {
       xml += `
       <url>
         <loc>${BASE_URL}${page}</loc>
-        <changefreq>monthly</changefreq>
+        <changefreq>${page === "" ? "daily" : "monthly"}</changefreq>
         <priority>${page === "" ? "1.0" : "0.8"}</priority>
       </url>`;
     });
 
-    // Dynamic projects
-    projects.forEach(p => {
-      xml += `
-      <url>
-        <loc>${BASE_URL}/projects/${p._id}</loc>
-        <lastmod>${p.updatedAt.toISOString()}</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.7</priority>
-      </url>`;
-    });
-
-    // Dynamic blogs
-    blogs.forEach(b => {
-      xml += `
-      <url>
-        <loc>${BASE_URL}/blogs/${b.slug}</loc>
-        <lastmod>${b.updatedAt.toISOString()}</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.6</priority>
-      </url>`;
-    });
-
-    // Dynamic events
-    events.forEach(e => {
-      xml += `
-      <url>
-        <loc>${BASE_URL}/events/${e.slug}</loc>
-        <lastmod>${e.updatedAt.toISOString()}</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.6</priority>
-      </url>`;
-    });
+    // Dynamic projects loop with safety checks
+    if (projects && projects.length > 0) {
+      projects.forEach(p => {
+        const lastMod = p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+        xml += `
+        <url>
+          <loc>${BASE_URL}/projects/${p._id}</loc>
+          <lastmod>${lastMod}</lastmod>
+          <changefreq>weekly</changefreq>
+          <priority>0.7</priority>
+        </url>`;
+      });
+    }
 
     xml += `</urlset>`;
 
     res.set("Content-Type", "application/xml");
-    res.set("Cache-Control", "public, max-age=3600"); // cache 1 hour
+    res.set("Cache-Control", "public, max-age=3600");
     res.status(200).send(xml);
 
   } catch (err) {
     console.error("❌ Sitemap error:", err.message);
-    res.status(500).send("Error generating sitemap");
+    res.status(500).send(`Error generating sitemap: ${err.message}`);
   }
 });
 
@@ -158,7 +134,7 @@ app.use("/api/events", eventRoutes);
 app.use("/api/testimonials", testimonialRoutes);
 app.use("/api/about-us", aboutusRoutes);
 
-// 9️⃣ Error handler (LAST)
+// 9️⃣ Error handler
 app.use((err, req, res, next) => {
   res.status(err.status || 500).json({
     success: false,
