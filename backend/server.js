@@ -4,7 +4,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import nodemailer from "nodemailer";
-import fetch from "node-fetch"; // Ensure node-fetch is installed or use global fetch in Node 18+
+
 
 // 2️⃣ Database utilities
 import { initDatabase, checkDatabaseHealth } from "./utils/db.js";
